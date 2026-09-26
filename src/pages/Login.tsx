@@ -23,7 +23,7 @@ export default function Login() {
     <div className="authwrap">
       <div className="authcard">
         <div className="brandhero">
-          <img src="/brand/pa-logo-768.jpg" alt="Priastama Adiyoga — Product Design" fetchPriority="high" />
+          <img src="/brand/pa-logo-768.png" alt="Priastama Adiyoga — Product Design" fetchPriority="high" />
         </div>
         <div className="authbrand"><BrandMark size={44} />
           <div><h1>Safety Patrol</h1><p>PT Sifang Mining Indonesia · v2.0 produksi</p></div>

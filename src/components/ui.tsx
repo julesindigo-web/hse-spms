@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main className="content">{children}</main>
       <footer className="foot">
         <div className="designer-chip">
-          <img src="/brand/pa-logo-384.jpg" alt="Priastama Adiyoga — Product Design" loading="lazy" />
+          <img src="/brand/pa-logo-768.png" alt="Priastama Adiyoga — Product Design" loading="lazy" />
         </div>
         <p className="foot-brand">Product Design</p>
         <small>HSE Safety Patrol v2.0 · Offline-first · Radio/verbal adalah jalur utama STOP WORK (RULE-021) · Aplikasi sebagai dokumentasi dan backup</small>

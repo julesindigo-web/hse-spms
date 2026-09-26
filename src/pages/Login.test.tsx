@@ -28,6 +28,6 @@ describe('Login', () => {
     renderWith('/login', <Login />);
     expect(await screen.findByText(/patrol-sifang@gmail.com/)).not.toBeNull();
     expect(screen.getByText(/Akun terdaftar/)).not.toBeNull();
-    expect(screen.getByAltText(/Priastama Adiyoga/)).toHaveAttribute('src', '/brand/pa-logo-768.jpg');
+    expect(screen.getByAltText(/Priastama Adiyoga/)).toHaveAttribute('src', '/brand/pa-logo-768.png');
   });
 });

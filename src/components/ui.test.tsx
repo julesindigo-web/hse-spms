@@ -25,7 +25,7 @@ describe('Layout', () => {
     shell(<Layout><p>isi</p></Layout>);
     expect(await screen.findByText('Masuk')).not.toBeNull();
     expect(screen.getByText(/Product Design/)).not.toBeNull();
-    expect(screen.getByAltText(/Priastama Adiyoga/)).toHaveAttribute('src', '/brand/pa-logo-384.jpg');
+    expect(screen.getByAltText(/Priastama Adiyoga/)).toHaveAttribute('src', '/brand/pa-logo-768.png');
   });
   it('login: menu lengkap + admin untuk HSE_ADMIN saja', async () => {
     const me = await loginAs('PATROL');

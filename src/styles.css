@@ -133,9 +133,9 @@ code { background: #f1f5f9; border: 1px solid var(--line-soft); padding: 1px 7px
 .authcard { width: 100%; max-width: 470px; background: #fff; border-radius: var(--radius-lg); padding: 28px 26px;
   box-shadow: var(--shadow-lg); border: 1px solid var(--line); border-top: 5px solid var(--teal-700); animation: rise .4s var(--ease) both; }
 .authbrand { display: flex; gap: 13px; align-items: center; margin-bottom: 16px; }
-.brandhero { margin: -28px -26px 18px; border-radius: 20px 20px 0 0; overflow: hidden; background: #0a0a0b; border-bottom: 1px solid #2a2a2e; }
+.brandhero { margin: -28px -26px 18px; border-radius: 20px 20px 0 0; overflow: hidden; background: transparent; border-bottom: 1px solid var(--line); }
 .brandhero img { display: block; width: 100%; height: auto; }
-.designer-chip { display: inline-block; background: #0b0b0c; border: 1px solid #2b2b30; border-radius: 14px; padding: 6px 12px; box-shadow: 0 10px 24px -12px rgba(0, 0, 0, .65); }
+.designer-chip { display: inline-block; background: transparent; border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; box-shadow: 0 10px 24px -12px rgba(0, 0, 0, .25); }
 .designer-chip img { display: block; height: 48px; width: auto; border-radius: 8px; }
 .authcard h1 { margin: 0; font-size: 22px; } .authcard .authbrand p { margin: 2px 0 0; color: var(--mut); font-size: 13px; }
 .errbox { background: var(--red-bg); border: 1px solid var(--red-line); color: #7f1d1d; padding: 11px 13px; border-radius: 12px; font-size: 13.5px; }
