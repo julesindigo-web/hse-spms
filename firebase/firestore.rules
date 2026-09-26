@@ -1,0 +1,45 @@
+// Firestore Rules — RBAC §22 + App Check §22 + closure CRITICAL §2
+// Deploy: firebase deploy --only firestore:rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function userDoc() { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function activeUser() { return signedIn() && userDoc().active == true; }
+    function role() { return userDoc().role; }
+    function isPatrol() { return activeUser() && role() == 'PATROL'; }
+    function isSupervisor() { return activeUser() && (role() == 'SUPERVISOR' || role() == 'HSE_ADMIN'); }
+    function isAdmin() { return activeUser() && role() == 'HSE_ADMIN'; }
+    function isViewer() { return activeUser() && (role() in ['MANAGEMENT_VIEWER', 'HSE_AUDITOR_OPTIONAL', 'SUPERVISOR', 'HSE_ADMIN']); }
+
+    match /users/{uid} {
+      allow read: if isSupervisor() || request.auth.uid == uid;
+      allow write: if isAdmin(); // role tidak user-editable (§22)
+    }
+    match /checklist_master/{id} { allow read: if activeUser(); allow write: if isAdmin(); }
+    match /parameters/{id} { allow read: if activeUser(); allow write: if isAdmin(); }
+    match /critical_controls/{id} { allow read: if activeUser(); allow write: if isAdmin(); }
+    match /tarp_rules/{id} { allow read: if activeUser(); allow write: if isAdmin(); }
+    match /areas/{id} { allow read: if activeUser(); allow write: if isAdmin(); }
+    match /inspections/{id} {
+      allow create: if activeUser() && request.resource.data.inspector_uid == request.auth.uid;
+      allow read: if activeUser();
+      allow update: if isSupervisor(); // submitted immutable untuk patrol (§21)
+      allow delete: if false;
+    }
+    match /findings/{id} {
+      allow create: if activeUser();
+      allow read: if activeUser();
+      // PATROL tidak bisa VERIFIED/CLOSED (§6); CRITICAL close hanya HSE_ADMIN dual sign-off (cek server + client §2)
+      allow update: if isSupervisor() && !(request.resource.data.state == 'CLOSED' && request.resource.data.risk_level == 'CRITICAL' && role() != 'HSE_ADMIN');
+      allow delete: if false;
+    }
+    match /upload_tickets/{id} {
+      allow create: if activeUser() && request.resource.data.uid == request.auth.uid;
+      allow read: if activeUser() && (resource.data.uid == request.auth.uid || isSupervisor());
+      allow update: if false; // hanya Apps Script service account (server) yang update → UPLOADED
+    }
+    match /audit_logs/{id} { allow read: if isSupervisor(); allow create: if activeUser(); allow update, delete: if false; }
+    match /{other=**} { allow read, write: if false; }
+  }
+}

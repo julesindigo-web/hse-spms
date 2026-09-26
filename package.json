@@ -1,0 +1,31 @@
+{
+  "name": "hse-safety-patrol",
+  "version": "2.0.0",
+  "description": "HSE Safety Patrol Management System — PT Sifang Mining Indonesia (Blueprint v2.0 Canonical, Vercel-ready)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsc --noEmit && vite build --mode test",
+    "lint": "eslint src --ext .ts,.tsx || true"
+  },
+  "dependencies": {
+    "firebase": "^10.12.5",
+    "idb": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^0.20.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

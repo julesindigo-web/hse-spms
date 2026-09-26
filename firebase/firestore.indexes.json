@@ -1,0 +1,7 @@
+{
+  "indexes": [
+    { "collectionGroup": "inspections", "fields": [{ "fieldPath": "area_id", "order": "ASCENDING" }, { "fieldPath": "date", "order": "DESCENDING" }] },
+    { "collectionGroup": "findings", "fields": [{ "fieldPath": "state", "order": "ASCENDING" }, { "fieldPath": "risk_level", "order": "ASCENDING" }] },
+    { "collectionGroup": "findings", "fields": [{ "fieldPath": "due_date", "order": "ASCENDING" }] }
+  ]
+}
