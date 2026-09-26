@@ -16,8 +16,7 @@ export const STRINGS: Record<string, Record<Lang, string>> = {
   admin: { 'id-ID': 'Admin', 'zh-CN': '管理', 'en-US': 'Admin' },
   radio_reminder: { 'id-ID': 'Sudah menghubungi supervisor via radio? Aplikasi adalah jalur SEKUNDER — radio/verbal langsung adalah jalur UTAMA untuk STOP WORK.', 'zh-CN': '已通过对讲机联系主管了吗？App 仅为次要通道。', 'en-US': 'Have you radioed the supervisor? App is SECONDARY — direct radio/verbal is PRIMARY for STOP WORK.' },
   submit: { 'id-ID': 'Kirim', 'zh-CN': '提交', 'en-US': 'Submit' },
-  sync_pending: { 'id-ID': 'Menunggu sinkron', 'zh-CN': '待同步', 'en-US': 'Pending sync' },
-  demo_mode: { 'id-ID': 'MODE DEMO lokal (tanpa Firebase) — data tersimpan di browser', 'zh-CN': '本地演示模式', 'en-US': 'Local DEMO mode (no Firebase) — data stored in browser' }
+  sync_pending: { 'id-ID': 'Menunggu sinkron', 'zh-CN': '待同步', 'en-US': 'Pending sync' }
 };
 
 export function t(key: string, lang: Lang): string {

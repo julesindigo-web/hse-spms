@@ -24,8 +24,8 @@ describe('Layout', () => {
   it('tamu: tautan Masuk + footer brand', async () => {
     shell(<Layout><p>isi</p></Layout>);
     expect(await screen.findByText('Masuk')).not.toBeNull();
-    expect(screen.getByText(/Product Design by/)).not.toBeNull();
-    expect(screen.getByText('Priastama Adiyoga')).not.toBeNull();
+    expect(screen.getByText(/Product Design/)).not.toBeNull();
+    expect(screen.getByAltText(/Priastama Adiyoga/)).toHaveAttribute('src', '/brand/pa-logo-384.jpg');
   });
   it('login: menu lengkap + admin untuk HSE_ADMIN saja', async () => {
     const me = await loginAs('PATROL');

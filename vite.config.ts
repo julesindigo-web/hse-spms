@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/icon.svg'],
+      includeAssets: ['icons/icon.svg', 'brand/pa-logo.png'],
       manifest: {
         name: 'Safety Patrol — PT Sifang Mining Indonesia',
         short_name: 'Safety Patrol',
@@ -19,7 +19,8 @@ export default defineConfig({
         lang: 'id-ID',
         icons: [
           { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' }
+          { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+          { src: 'brand/pa-logo.png', sizes: '1536x1024', type: 'image/png', purpose: 'any' }
         ]
       },
       workbox: {

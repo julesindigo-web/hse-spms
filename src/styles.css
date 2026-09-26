@@ -141,6 +141,10 @@ code { background: #f1f5f9; border: 1px solid var(--line-soft); padding: 1px 7px
 .authcard { width: 100%; max-width: 470px; background: #fff; border-radius: var(--radius-lg); padding: 28px 26px;
   box-shadow: var(--shadow-lg); border: 1px solid var(--line); border-top: 5px solid var(--teal-700); animation: rise .4s var(--ease) both; }
 .authbrand { display: flex; gap: 13px; align-items: center; margin-bottom: 16px; }
+.brandhero { margin: -28px -26px 18px; border-radius: 20px 20px 0 0; overflow: hidden; background: #0a0a0b; border-bottom: 1px solid #2a2a2e; }
+.brandhero img { display: block; width: 100%; height: auto; }
+.designer-chip { display: inline-block; background: #0b0b0c; border: 1px solid #2b2b30; border-radius: 14px; padding: 6px 12px; box-shadow: 0 10px 24px -12px rgba(0, 0, 0, .65); }
+.designer-chip img { display: block; height: 48px; width: auto; border-radius: 8px; }
 .authcard h1 { margin: 0; font-size: 22px; } .authcard .authbrand p { margin: 2px 0 0; color: var(--mut); font-size: 13px; }
 .errbox { background: var(--red-bg); border: 1px solid var(--red-line); color: #7f1d1d; padding: 11px 13px; border-radius: 12px; font-size: 13.5px; }
 .help { margin-top: 14px; font-size: 13px; }
@@ -235,11 +239,7 @@ button .ic, .btn .ic { vertical-align: -3px; }
 .brandmark { display: inline-flex; flex: none; filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .35)); }
 .big-ic { display: inline-grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: var(--teal-50);
   color: var(--teal-700); border: 1px solid var(--line); margin-bottom: 10px; }
-.foot-line { display: flex; align-items: center; gap: 12px; max-width: 430px; margin: 0 auto 9px; }
-.foot-line span { flex: 1; height: 1px; background: var(--line); }
-.foot-line .brandmark { filter: none; opacity: .9; }
-.foot-brand { margin: 0 0 4px; font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--mut); }
-.foot-brand b { color: var(--teal-900); letter-spacing: .16em; }
+.foot-brand { margin: 8px 0 4px; font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--mut); }
 .modal-kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: .13em; color: var(--red); margin: 0 0 6px; }
 .modal-crit { border-top: 5px solid var(--red); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: baseline; }
