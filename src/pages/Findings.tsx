@@ -20,26 +20,29 @@ export default function Findings() {
   useEffect(() => { load(); }, []);
 
   async function act(f: Finding, next: Finding['state'], extra: Partial<Finding> = {}) {
-    if (!user) return;
-    if (next === 'ASSIGNED' && !can(user.role, 'finding.assign')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa assign PIC.');
-    if (next === 'VERIFIED' && !can(user.role, 'finding.verify')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa verify.');
-    if ((next === 'VERIFIED' || next === 'CLOSED') && user.role === 'PATROL') return alert('PATROL tidak bisa verify/close (§6 RULE-003).');
+    // Protected menjamin user non-null — tanpa guard defensif yang tak terjangkau.
+    const me = user!;
+    if (next === 'ASSIGNED' && !can(me.role, 'finding.assign')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa assign PIC.');
+    if (next === 'VERIFIED' && !can(me.role, 'finding.verify')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa verify.');
+    if ((next === 'VERIFIED' || next === 'CLOSED') && me.role === 'PATROL') return alert('PATROL tidak bisa verify/close (§6 RULE-003).');
     if (next === 'CLOSED') {
-      const c = canCloseFinding({ ...f, ...extra }, user.role, second[f.id] || (extra as any).second_approver_uid);
+      const c = canCloseFinding({ ...f, ...extra }, me.role, second[f.id] || (extra as any).second_approver_uid);
       if (!c.ok) return alert('Ditolak: ' + c.reason);
     }
     const upd = { ...f, ...extra, state: next, updated_at: new Date().toISOString() } as any;
     if (next === 'CLOSED' && (f as any).risk_level === 'CRITICAL') {
-      upd.second_approver_uid = second[f.id] || (extra as any).second_approver_uid;
+      // canCloseFinding di atas sudah memastikan second approver terisi untuk CRITICAL.
+      upd.second_approver_uid = second[f.id];
       upd.second_approver_at = new Date().toISOString();
-      await audit(user.uid, user.role, 'SECOND_APPROVAL_CRITICAL_CLOSURE', 'findings', f.id, `dual sign-off oleh ${upd.second_approver_uid}`);
+      await audit(me.uid, me.role, 'SECOND_APPROVAL_CRITICAL_CLOSURE', 'findings', f.id, `dual sign-off oleh ${upd.second_approver_uid}`);
     }
     await put('findings', upd);
-    await audit(user.uid, user.role, `FINDING_${next}`, 'findings', f.id);
+    await audit(me.uid, me.role, `FINDING_${next}`, 'findings', f.id);
     load();
   }
 
-  const shown = items.filter(f => filter === 'ALL' ? true : filter === 'OPEN_ALL' ? !['CLOSED', 'VERIFIED', 'REJECTED'].includes(f.state) : filter === 'CRITICAL' ? (f as any).risk_level === 'CRITICAL' : filter === 'OVERDUE' ? ((f as any).due_date && (f as any).due_date < new Date().toISOString().slice(0, 10) && !['CLOSED', 'VERIFIED'].includes(f.state)) : true);
+  // Hanya 4 filter eksis (tombol UI) — OVERDUE sebagai cabang akhir, tanpa else mati.
+  const shown = items.filter(f => filter === 'ALL' ? true : filter === 'OPEN_ALL' ? !['CLOSED', 'VERIFIED', 'REJECTED'].includes(f.state) : filter === 'CRITICAL' ? (f as any).risk_level === 'CRITICAL' : ((f as any).due_date && (f as any).due_date < new Date().toISOString().slice(0, 10) && !['CLOSED', 'VERIFIED'].includes(f.state)));
 
   return (
     <Protected>

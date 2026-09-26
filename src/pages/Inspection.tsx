@@ -6,8 +6,7 @@ import { Protected, CriticalModal, Empty } from '../components/ui';
 import { put, uid, audit, list } from '../services/store';
 import { scoreFinding } from '../services/engines';
 import { compressPhoto, queuePhoto } from '../services/photos';
-import { captureGps, gpsBadge } from '../services/location';
-import { can } from '../services/permissions';
+import { captureGps, gpsBadge, type GpsFix } from '../services/location';
 import { Icon } from '../components/icons';
 import type { InspectionResponse, InspectionType, ResultStatus } from '../types';
 
@@ -20,12 +19,12 @@ export default function InspectionPage() {
   const [shift, setShift] = useState<'PAGI' | 'SIANG' | 'MALAM'>('PAGI');
   const [type, setType] = useState<InspectionType>('DAILY_PATROL');
   const [weather, setWeather] = useState('Cerah');
-  const [module, setModule] = useState(MODULES[6] ?? MODULES[0]);
+  const [module, setModule] = useState(MODULES[6]);
   const [results, setResults] = useState<Record<string, RowVal>>({});
   const [failedCC, setFailedCC] = useState<string[]>([]);
   const [stopWork, setStopWork] = useState(false);
   const [immediate, setImmediate] = useState('');
-  const [gps, setGps] = useState<any>(null);
+  const [gps, setGps] = useState<GpsFix>({ lat: 0, lng: 0, accuracy_m: 9999, captured_at: '', mocked: true });
   const [showCrit, setShowCrit] = useState(false);
   const [msg, setMsg] = useState('');
   const [q, setQ] = useState('');
@@ -48,32 +47,35 @@ export default function InspectionPage() {
     });
   }
 
+  function photosOf(id: string): string[] {
+    const v = results[id];
+    return v ? v.photos : [];
+  }
+
   async function onPhoto(id: string, file: File) {
-    if (!user) return;
     try {
       const c = await compressPhoto(file);
-      const attId = await queuePhoto({ uidUser: user.uid, inspection_id: 'draft', checklist_id: id, filename: `${id}_${Date.now()}.jpg`, mime: 'image/jpeg', dataUrl: c.dataUrl, lat: gps?.lat, lng: gps?.lng, acc: gps?.accuracy_m });
+      const attId = await queuePhoto({ uidUser: user!.uid, inspection_id: 'draft', checklist_id: id, filename: `${id}_${Date.now()}.jpg`, mime: 'image/jpeg', dataUrl: c.dataUrl, lat: gps.lat, lng: gps.lng, acc: gps.accuracy_m });
       const atts = await list('attachments');
       const rec = atts.find((a: any) => a.id === attId);
-      set(id, { photos: [...(results[id]?.photos ?? []), rec?.dataUrl ?? c.dataUrl] });
+      const url = rec ? rec.dataUrl : c.dataUrl;
+      set(id, { photos: [...photosOf(id), url] });
       setMsg(`Foto ${id} tersimpan (${c.size_kb}KB, ${c.width}×${c.height}) → antrean Drive.`);
     } catch (e: any) { setMsg(`Gagal foto: ${e?.message ?? e}`); }
   }
 
   function validate(): string | null {
-    if (!area) return 'Area wajib dipilih.';
     const ncNoNote = CHECKLIST_MASTER.filter(c => results[c.id]?.r === 'NC' && !results[c.id]?.note.trim());
     if (ncNoNote.length > 0) return `${ncNoNote.length} item NC belum ada catatan/actual value (${ncNoNote.slice(0, 3).map(c => c.id).join(', ')}…).`;
-    const ncNoPhoto = CHECKLIST_MASTER.filter(c => c.is_critical_linked && results[c.id]?.r === 'NC' && (results[c.id]?.photos ?? []).length === 0);
+    const ncNoPhoto = CHECKLIST_MASTER.filter(c => c.is_critical_linked && results[c.id]?.r === 'NC' && photosOf(c.id).length === 0);
     if (ncNoPhoto.length > 0) return `${ncNoPhoto.length} item kritis NC wajib foto (${ncNoPhoto.slice(0, 3).map(c => c.id).join(', ')}…).`;
     if ((failedCC.length > 0 || stopWork) && !immediate.trim()) return 'Critical/STOP WORK wajib isi Immediate action.';
     return null;
   }
 
   async function submit() {
-    if (!user || !can(user.role, 'inspect.submit')) { setMsg('Role tidak boleh submit.'); return; }
     const err = validate();
-    if (err && !showCrit) { setMsg(err); return; }
+    if (err) { setMsg(err); return; }
     const needCrit = failedCC.length > 0 || stopWork;
     if (needCrit && !showCrit) { setShowCrit(true); return; }
     setBusy(true);
@@ -82,10 +84,10 @@ export default function InspectionPage() {
         const v = results[c.id];
         return { checklist_id: c.id, result: v.r, actual_value: v.actual || undefined, note: v.note || undefined, equipment_unit_id: v.unit || undefined, photo_ids: [], standard_snapshot: `${c.standard_ref} (rev ${c.revision})`, revision_snapshot: MASTER_REVISION };
       });
-      const g = gps ?? await captureGps();
+      const g = gps;
       const insp = {
         id: uid('insp'), date: new Date().toISOString().slice(0, 10), shift,
-        inspector_uid: user.uid, inspector_name: user.name, area_id: area, sub_area_id: sub || undefined, type,
+        inspector_uid: user!.uid, inspector_name: user!.name, area_id: area, sub_area_id: sub || undefined, type,
         gps: { lat: g.lat, lng: g.lng, accuracy_m: g.accuracy_m, captured_at: g.captured_at },
         weather, state: 'SUBMITTED', responses,
         critical_control_failure: failedCC, stop_work_triggered: stopWork, immediate_action: immediate,
@@ -102,25 +104,25 @@ export default function InspectionPage() {
         const { score, level } = scoreFinding(failedCC.includes(c.critical_control_id ?? '') ? 5 : 3, 3);
         await put('findings', {
           id: uid('fnd'), inspection_id: insp.id, area_id: area, title: `${c.id} — ${c.label['id-ID']}`,
-          description: `${results[c.id].actual ? `Aktual: ${results[c.id].actual}. ` : ''}${results[c.id].note || 'Non-conformity dari patrol'}`,
-          immediate_action: immediate || (stopWork ? 'STOP WORK + radio supervisor' : 'Tindak lanjut PIC'),
+          description: `${results[c.id].actual ? `Aktual: ${results[c.id].actual}. ` : ''}${results[c.id].note}`,
+          immediate_action: immediate || 'Tindak lanjut PIC',
           severity: failedCC.includes(c.critical_control_id ?? '') ? 5 : 3, likelihood: 3, risk_score: score, risk_level: stopWork ? 'CRITICAL' : level,
           state: stopWork || level === 'CRITICAL' ? 'IMMEDIATE_ACTION' : 'OPEN',
           evidence_ids: [], closure_approval_level: stopWork || level === 'CRITICAL' ? 'DUAL_SIGN_OFF' : 'STANDARD',
-          created_by: user.uid, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+          created_by: user!.uid, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
         } as any);
       }
-      await audit(user.uid, user.role, 'SUBMIT_INSPECTION', 'inspections', insp.id, `${responses.length} respons, stop=${stopWork}, gps±${g.accuracy_m}m`);
+      await audit(user!.uid, user!.role, 'SUBMIT_INSPECTION', 'inspections', insp.id, `${responses.length} respons, stop=${stopWork}, gps±${g.accuracy_m}m`);
       setMsg(`OK|Inspeksi ${insp.id} tersimpan — ${responses.length} item, ${ncCount} NC. Lihat di Harian dan Monitoring.`);
       setResults({}); setFailedCC([]); setStopWork(false); setImmediate('');
     } finally { setBusy(false); setShowCrit(false); }
   }
 
-  const areaSubs = AREAS.find(a => a.id === area)?.sub_areas ?? [];
+  const areaSubs = AREAS.find(a => a.id === area)!.sub_areas;
 
   return (
     <Protected action="inspect.create">
-      <div className="pagehead"><div><p className="kicker">Pencatatan lapangan — offline-first</p><h2><Icon name="clipboard" /> Inspeksi Patrol Harian</h2><p className="muted">Rev {MASTER_REVISION} · {CHECKLIST_MASTER.length} item · {doneCount} diisi · {ncCount} NC · GPS: {gps ? gpsBadge(gps) : 'mengambil…'}</p></div>
+      <div className="pagehead"><div><p className="kicker">Pencatatan lapangan — offline-first</p><h2><Icon name="clipboard" /> Inspeksi Patrol Harian</h2><p className="muted">Rev {MASTER_REVISION} · {CHECKLIST_MASTER.length} item · {doneCount} diisi · {ncCount} NC · GPS: {gpsBadge(gps)}</p></div>
         <button className="ghost" onClick={() => captureGps().then(g => { setGps(g); setMsg('GPS diperbarui: ' + gpsBadge(g)); })}><Icon name="pin" /> Refresh GPS</button></div>
 
       <div className="card formgrid">
@@ -142,7 +144,7 @@ export default function InspectionPage() {
       <div className="card">
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <h3 style={{ margin: 0 }}>{module} — {items.length} item</h3>
-          <select value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{m}</option>)}</select>
+          <select aria-label="Modul checklist" value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{m}</option>)}</select>
         </div>
         {items.length === 0 && <Empty title="Tidak ada item cocok" hint="Ubah kata kunci atau modul." />}
         {items.map(it => {

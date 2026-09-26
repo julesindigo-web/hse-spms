@@ -27,10 +27,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // revalidasi active (§3: perubahan role ditegakkan setelah sinkron)
           const users = await list('users');
           const cur = users.find((x: any) => x.uid === u.uid);
-          if (cur && cur.active) setUser({ uid: cur.uid, email: cur.email, name: cur.name, employee_id: cur.employee_id, role: cur.role, active: true, areas: cur.areas ?? [] });
+          // Semua penulis users selalu menyertakan areas (tipe AppUser mewajibkan) — akses langsung.
+          if (cur && cur.active) setUser({ uid: cur.uid, email: cur.email, name: cur.name, employee_id: cur.employee_id, role: cur.role, active: true, areas: cur.areas });
           else localStorage.removeItem(KEY);
         }
-      } catch { /* abaikan sesi rusak */ }
+      } catch {
+        // Sesi rusak/tak terbaca: bersihkan agar tak meracuni start berikutnya.
+        localStorage.removeItem(KEY);
+      }
     })();
   }, []);
   async function login(email: string, pass: string): Promise<string | null> {

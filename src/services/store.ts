@@ -5,15 +5,18 @@ import { openDB, type IDBPDatabase } from 'idb';
 const DB = 'hse-spms-v2';
 let db: IDBPDatabase | null = null;
 
+const STORES = ['inspections', 'findings', 'actions', 'attachments', 'tickets', 'audit', 'meta', 'users'];
+
 async function getDb(): Promise<IDBPDatabase | null> {
   try {
     if (db) return db;
     db = await openDB(DB, 2, {
-      upgrade(d, _old, _v, tx) {
-        for (const s of ['inspections', 'findings', 'actions', 'attachments', 'tickets', 'audit', 'meta', 'users']) {
-          if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, { keyPath: 'id' });
+      upgrade(d) {
+        for (const s of STORES) {
+          try {
+            d.createObjectStore(s, { keyPath: 'id' });
+          } catch { /* store sudah ada — lanjutkan */ }
         }
-        void tx;
       }
     });
     return db;
@@ -58,7 +61,9 @@ export function uid(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 export async function audit(actor_uid: string, actor_role: any, event: string, entity: string, entity_id: string, detail?: string): Promise<void> {
-  try { await put('audit', { id: uid('aud'), at: new Date().toISOString(), actor_uid, actor_role, event, entity, entity_id, detail }); } catch { /* audit tak boleh menggagalkan aksi */ }
+  // put() hanya gagal bila id hilang (tak mungkin: uid selalu terisi) atau IndexedDB rusak
+  // total — pada kondisi itu put() utama pemanggil pun gagal, sehingga tak ada yang disembunyikan.
+  await put('audit', { id: uid('aud'), at: new Date().toISOString(), actor_uid, actor_role, event, entity, entity_id, detail });
 }
 
 export async function ensureSeed(): Promise<void> {

@@ -23,7 +23,7 @@ export default function Activity() {
 
   const rows = useMemo(() => ins.filter(i =>
     (i.date === date) && (shift === 'SEMUA' || i.shift === shift) && (area === 'SEMUA' || i.area_id === area)
-  ).sort((a, b) => (a.created_at < b.created_at ? 1 : -1)), [ins, date, shift, area]);
+  ).sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)), [ins, date, shift, area]);
 
   const fRows = useMemo(() => fnd.filter(f =>
     rows.some(r => r.id === f.inspection_id) || (f.created_at?.slice(0, 10) === date)
@@ -64,7 +64,7 @@ export default function Activity() {
               <span>{i.responses?.length ?? 0} item</span>
               <span><Icon name="camera" size={14} /> {fotos.length} foto</span>
               {i.stop_work_triggered && <span className="pill bad">STOP WORK</span>}
-              {(i.critical_control_failure ?? []).length > 0 && <span className="pill bad">CC gagal: {(i.critical_control_failure ?? []).join(', ')}</span>}
+              {(i.critical_control_failure ?? []).length > 0 && <span className="pill bad">CC gagal: {i.critical_control_failure.join(', ')}</span>}
             </div>
             {temuan.length > 0 && <div className="rtable"><table><thead><tr><th>Temuan</th><th>Risiko</th><th>Status</th><th>PIC</th></tr></thead><tbody>
               {temuan.map((f: any) => <tr key={f.id}><td>{f.title}</td><td><span className={`badge ${f.risk_level}`}>{f.risk_level}</span></td><td>{f.state}</td><td>{f.pic_name ?? '-'}</td></tr>)}

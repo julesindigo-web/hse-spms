@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { list } from '../services/store';
 import { Protected } from '../components/ui';
 import { Icon } from '../components/icons';
-import { areaStatus } from '../services/engines';
+import { areaStatus, inspectionCompliance } from '../services/engines';
 import { AREAS } from '../data/master';
 
 // Safety Patrol Monitoring — pemantauan live: status area, tren 7 hari, produktivitas patrol, overdue/repeat.
@@ -73,7 +73,8 @@ export default function Monitoring() {
             const fi = ins.filter(i => i.area_id === a.id);
             const hasCrit = crit.some(c => c.area_id === a.id);
             const ccFail = fi.some(i => ((i.critical_control_failure ?? []) as string[]).length > 0);
-            const st = areaStatus({ criticalControlFailure: ccFail ? ['CC'] : [], tarpRed: false, hasCriticalFinding: hasCrit, hasHighFinding: open.some(o => o.area_id === a.id && o.risk_level === 'HIGH'), compliancePct: fi.length ? 85 : 100 });
+            const avgComp = fi.length ? Math.round(fi.reduce((t, x) => t + inspectionCompliance(x), 0) / fi.length) : 100;
+            const st = areaStatus({ criticalControlFailure: ccFail ? ['CC'] : [], tarpRed: false, hasCriticalFinding: hasCrit, hasHighFinding: open.some(o => o.area_id === a.id && o.risk_level === 'HIGH'), compliancePct: avgComp });
             const dot = st === 'CRITICAL' ? 'crit' : st === 'RESTRICTED' ? 'rest' : st === 'WATCH' ? 'warn' : 'ok';
             return <div key={a.id} className="arearow"><span><span className={`dot ${dot}`} />{a.name['id-ID']}</span><span className={`badge ${st}`}>{st}</span></div>;
           })}
@@ -82,7 +83,7 @@ export default function Monitoring() {
       <div className="card">
         <h3>Produktivitas patrol (kualitas + kuantitas §40)</h3>
         <div className="tablewrap"><table><thead><tr><th>Patrol</th><th>Inspeksi</th><th>NC ditemukan</th><th>CC gagal</th><th>Rata-rata NC/inspeksi</th></tr></thead>
-          <tbody>{prod.map(p => <tr key={p.name}><td>{p.name}</td><td>{p.insp}</td><td>{p.nc}</td><td>{p.crit}</td><td>{p.insp ? (p.nc / p.insp).toFixed(1) : '0'}</td></tr>)}
+          <tbody>{prod.map(p => <tr key={p.name}><td>{p.name}</td><td>{p.insp}</td><td>{p.nc}</td><td>{p.crit}</td><td>{(p.nc / p.insp).toFixed(1)}</td></tr>)}
             {prod.length === 0 && <tr><td colSpan={5} className="muted">Belum ada data — mulai patrol hari ini.</td></tr>}</tbody></table></div>
         <p className="muted">Jangan reward semata dari jumlah temuan; kombinasikan dengan kualitas evidence & closure.</p>
       </div>

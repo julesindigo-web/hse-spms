@@ -17,6 +17,7 @@ export default function Admin() {
   const [conn, setConn] = useState('');
   const [msg, setMsg] = useState('');
   const [pw, setPw] = useState({ old: '', nw: '' });
+  const [nu, setNu] = useState({ name: '', email: '', emp: '', pass: '', role: 'PATROL' });
 
   async function load() {
     setUsers(await list('users'));
@@ -34,14 +35,14 @@ export default function Admin() {
   }
   async function addUser(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const email = String(fd.get('email')).toLowerCase().trim();
+    const email = nu.email.toLowerCase().trim();
     if (users.some(u => u.email === email)) { setMsg('Email sudah ada.'); return; }
     const id = uid('u');
-    await put('users', { id, uid: id, email, name: String(fd.get('name')), employee_id: String(fd.get('emp')), role: String(fd.get('role')), active: true, areas: [], pass_hash: await sha256(String(fd.get('pass'))) });
+    await put('users', { id, uid: id, email, name: nu.name, employee_id: nu.emp, role: nu.role, active: true, areas: [], pass_hash: await sha256(nu.pass) });
     await audit(user!.uid, user!.role, 'CREATE_USER', 'users', id, email);
     setMsg(`Pengguna ${email} dibuat. Sampaikan password awal secara aman (lisan/tertulis), bukan via grup umum.`);
-    (e.target as HTMLFormElement).reset(); load();
+    setNu({ name: '', email: '', emp: '', pass: '', role: 'PATROL' });
+    load();
   }
   async function resetPw(u: any) {
     const np = prompt(`Password baru untuk ${u.email} (min 8):`);
@@ -71,9 +72,11 @@ export default function Admin() {
         <details><summary>Matriks hak akses</summary><ul>{Object.entries(ROLE_DESC).map(([r, d]) => <li key={r}><b>{r}</b>: {d}</li>)}</ul></details>
         <details><summary>Tambah pengguna baru</summary>
           <form onSubmit={addUser} className="formgrid" style={{ marginTop: 8 }}>
-            <label>Nama<input name="name" required /></label><label>Email<input name="email" type="email" required /></label>
-            <label>Employee ID<input name="emp" required /></label><label>Password awal<input name="pass" required minLength={8} /></label>
-            <label>Role<select name="role"><option>PATROL</option><option>SUPERVISOR</option><option>HSE_ADMIN</option><option>MANAGEMENT_VIEWER</option><option>HSE_AUDITOR_OPTIONAL</option></select></label>
+            <label>Nama<input value={nu.name} onChange={e => setNu({ ...nu, name: e.target.value })} required /></label>
+            <label>Email<input type="email" value={nu.email} onChange={e => setNu({ ...nu, email: e.target.value })} required /></label>
+            <label>Employee ID<input value={nu.emp} onChange={e => setNu({ ...nu, emp: e.target.value })} required /></label>
+            <label>Password awal<input type="password" value={nu.pass} onChange={e => setNu({ ...nu, pass: e.target.value })} required minLength={8} /></label>
+            <label>Role<select value={nu.role} onChange={e => setNu({ ...nu, role: e.target.value })}><option>PATROL</option><option>SUPERVISOR</option><option>HSE_ADMIN</option><option>MANAGEMENT_VIEWER</option><option>HSE_AUDITOR_OPTIONAL</option></select></label>
             <button className="primary" type="submit">Buat akun</button>
           </form>
         </details>

@@ -32,7 +32,7 @@ export function canCloseFinding(f: Finding, role: string, secondApproverUid?: st
 }
 
 export function inspectionCompliance(insp: Inspection): number {
-  const valid = insp.responses.filter(r => r.result !== 'NA');
+  const valid = (insp.responses ?? []).filter(r => r.result !== 'NA');
   if (valid.length === 0) return 100;
   const ok = valid.filter(r => r.result === 'C' || r.result === 'OBS').length;
   return Math.round((ok / valid.length) * 100);
