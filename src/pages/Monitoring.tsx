@@ -41,7 +41,7 @@ export default function Monitoring() {
 
   return (
     <Protected>
-      <h2><Icon name="radar" /> Monitoring Safety Patrol</h2>
+      <p className="kicker">Pengawasan keselamatan live</p><h2><Icon name="radar" /> Monitoring Safety Patrol</h2>
       <div className="kpis">
         <div className="kpi"><span>Inspeksi total</span><b>{ins.length}</b></div>
         <div className="kpi warn"><span>Temuan terbuka</span><b>{open.length}</b></div>
@@ -65,7 +65,7 @@ export default function Monitoring() {
               );
             })}
           </svg>
-          <p className="muted">● merah = ada CRITICAL hari itu. Compliance % tidak pernah menutupi CC gagal (§26).</p>
+          <p className="muted"><span className="dot crit" />Titik merah = ada CRITICAL hari itu. Compliance % tidak pernah menutupi CC gagal (§26).</p>
         </div>
         <div className="card">
           <h3>Status area live (§39)</h3>
@@ -81,9 +81,9 @@ export default function Monitoring() {
       </div>
       <div className="card">
         <h3>Produktivitas patrol (kualitas + kuantitas §40)</h3>
-        <table><thead><tr><th>Patrol</th><th>Inspeksi</th><th>NC ditemukan</th><th>CC gagal</th><th>Rata-rata NC/inspeksi</th></tr></thead>
+        <div className="tablewrap"><table><thead><tr><th>Patrol</th><th>Inspeksi</th><th>NC ditemukan</th><th>CC gagal</th><th>Rata-rata NC/inspeksi</th></tr></thead>
           <tbody>{prod.map(p => <tr key={p.name}><td>{p.name}</td><td>{p.insp}</td><td>{p.nc}</td><td>{p.crit}</td><td>{p.insp ? (p.nc / p.insp).toFixed(1) : '0'}</td></tr>)}
-            {prod.length === 0 && <tr><td colSpan={5} className="muted">Belum ada data — mulai patrol hari ini.</td></tr>}</tbody></table>
+            {prod.length === 0 && <tr><td colSpan={5} className="muted">Belum ada data — mulai patrol hari ini.</td></tr>}</tbody></table></div>
         <p className="muted">Jangan reward semata dari jumlah temuan; kombinasikan dengan kualitas evidence & closure.</p>
       </div>
       <div className="card">

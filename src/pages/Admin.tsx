@@ -53,12 +53,12 @@ export default function Admin() {
 
   return (
     <Protected action="user.manage">
-      <h2><Icon name="gear" /> Admin Produksi</h2>
+      <p className="kicker">Kelola sistem — HSE Admin</p><h2><Icon name="gear" /> Admin Produksi</h2>
       {msg && <div className="card"><p className="ok">{msg}</p></div>}
 
       <div className="card">
         <h3><Icon name="users" /> Pengguna dan hak akses ({users.length}) — §2/§3</h3>
-        <table><thead><tr><th>Nama / Email</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+        <div className="tablewrap"><table><thead><tr><th>Nama / Email</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
           {users.map(u => <tr key={u.uid}><td><b>{u.name}</b><br /><small className="muted">{u.email} · {u.employee_id}</small></td>
             <td><span className="pill">{u.role}</span></td>
             <td>{u.active ? <span className="pill ok">aktif</span> : <span className="pill bad">nonaktif</span>}</td>
@@ -67,9 +67,9 @@ export default function Admin() {
               <button className="ghost sm" onClick={() => resetPw(u)}>Reset PW</button>
               <button className="ghost sm" onClick={async () => { if (confirm(`Hapus ${u.email}? Hanya bila benar-benar perlu — disarankan nonaktifkan (§3).`)) { await remove('users', u.uid); load(); } }}>Hapus</button>
             </div></td></tr>)}
-        </tbody></table>
+        </tbody></table></div>
         <details><summary>Matriks hak akses</summary><ul>{Object.entries(ROLE_DESC).map(([r, d]) => <li key={r}><b>{r}</b>: {d}</li>)}</ul></details>
-        <details><summary>➕ Tambah pengguna</summary>
+        <details><summary>Tambah pengguna baru</summary>
           <form onSubmit={addUser} className="formgrid" style={{ marginTop: 8 }}>
             <label>Nama<input name="name" required /></label><label>Email<input name="email" type="email" required /></label>
             <label>Employee ID<input name="emp" required /></label><label>Password awal<input name="pass" required minLength={8} /></label>
@@ -106,11 +106,11 @@ export default function Admin() {
         {conn && <p className="muted">{conn}</p>}
         <p className="muted">Alur: tiket Firestore (QUEUED, 24 jam, terikat uid) → POST base64 + tiket → Apps Script verifikasi ID Token independen + cek <code>ticket.uid==token.uid</code> + validasi MIME/ukuran/hash → Drive → UPLOADED (§19/§23). Password tak pernah ke Apps Script.</p>
         <h4>Antrean upload ({tickets.length} terbaru)</h4>
-        <table><thead><tr><th>Tiket</th><th>File</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+        <div className="tablewrap"><table><thead><tr><th>Tiket</th><th>File</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
           {tickets.map(t => <tr key={t.id}><td><small>{t.ticket_id}</small></td><td>{t.filename}</td><td><span className="pill">{t.status}</span></td>
             <td>{t.status === 'QUEUED' && <button className="ghost sm" onClick={async () => setConn(await retryTicket(t.ticket_id))}>Retry</button>}</td></tr>)}
           {tickets.length === 0 && <tr><td colSpan={4} className="muted">Antrean kosong — semua foto tersinkron.</td></tr>}
-        </tbody></table>
+        </tbody></table></div>
       </div>
     </Protected>
   );

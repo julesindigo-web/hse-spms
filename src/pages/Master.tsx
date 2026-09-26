@@ -6,7 +6,7 @@ import { Icon } from '../components/icons';
 export default function Master() {
   return (
     <Protected roles={['SUPERVISOR', 'HSE_ADMIN', 'MANAGEMENT_VIEWER']}>
-      <h2><Icon name="database" /> Data Master <small className="muted">rev v2.0 — hanya APPROVED yang live (§32)</small></h2>
+      <p className="kicker">Data referensi yang disahkan</p><h2><Icon name="database" /> Data Master <small className="muted">rev v2.0 — hanya APPROVED yang live (§32)</small></h2>
       <div className="card"><h3>Checklist: {CHECKLIST_MASTER.length} item (284 warisan + 32 baru)</h3>
         <p className="muted">WM 10 · CS 7 · FS 10 · LT 5. Kode adalah identitas permanen; teks tersimpan sebagai map id/zh/en (§8).</p>
         <details><summary>Lihat 32 item baru</summary><ul>{CHECKLIST_MASTER.filter(c => ['WATER_MANAGEMENT', 'CONFINED_SPACE', 'BULK_FUEL_STORAGE', 'LIGHTNING_WEATHER'].includes(c.module)).map(c => <li key={c.id}><b>{c.id}</b> {c.label['id-ID']} {c.is_critical_linked ? `(terkait ${c.critical_control_id})` : ''}</li>)}</ul></details>

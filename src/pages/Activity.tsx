@@ -35,7 +35,7 @@ export default function Activity() {
   return (
     <Protected>
       <div className="pagehead">
-        <div><h2><Icon name="calendar" /> Daily Activity Report</h2><p className="muted">Aktivitas patrol harian — ringkasan shift, compliance, temuan, critical control, evidence.</p></div>
+        <div><p className="kicker">Dokumentasi aktivitas patrol</p><h2><Icon name="calendar" /> Daily Activity Report</h2><p className="muted">Aktivitas patrol harian — ringkasan shift, compliance, temuan, critical control, evidence.</p></div>
         <div className="row">
           <button className="ghost" onClick={() => window.print()}><Icon name="printer" /> Cetak / PDF</button>
           {user && can(user.role, 'report.export') && <button onClick={() => download(`daily-${date}-${shift}.csv`, inspectionSummary(rows))}><Icon name="download" /> Inspeksi CSV</button>}

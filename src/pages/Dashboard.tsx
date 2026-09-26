@@ -18,7 +18,7 @@ export default function Dashboard() {
 
   return (
     <Protected>
-      <h2><Icon name="report" /> Dashboard</h2>
+      <p className="kicker">Indikator keselamatan</p><h2><Icon name="report" /> Dashboard</h2>
       <div className="grid4">
         <div className="stat"><b>{avgComp}%</b><span>Compliance rata-rata (bukan keamanan tunggal §26)</span></div>
         <div className="stat alert"><b>{crit.length}</b><span>CRITICAL terbuka</span></div>

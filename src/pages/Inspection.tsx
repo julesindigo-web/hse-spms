@@ -120,7 +120,7 @@ export default function InspectionPage() {
 
   return (
     <Protected action="inspect.create">
-      <div className="pagehead"><div><h2><Icon name="clipboard" /> Inspeksi Patrol Harian</h2><p className="muted">Rev {MASTER_REVISION} · {CHECKLIST_MASTER.length} item · {doneCount} diisi · {ncCount} NC · GPS: {gps ? gpsBadge(gps) : 'mengambil…'}</p></div>
+      <div className="pagehead"><div><p className="kicker">Pencatatan lapangan — offline-first</p><h2><Icon name="clipboard" /> Inspeksi Patrol Harian</h2><p className="muted">Rev {MASTER_REVISION} · {CHECKLIST_MASTER.length} item · {doneCount} diisi · {ncCount} NC · GPS: {gps ? gpsBadge(gps) : 'mengambil…'}</p></div>
         <button className="ghost" onClick={() => captureGps().then(g => { setGps(g); setMsg('GPS diperbarui: ' + gpsBadge(g)); })}><Icon name="pin" /> Refresh GPS</button></div>
 
       <div className="card formgrid">
@@ -172,7 +172,7 @@ export default function InspectionPage() {
 
       <div className="card">
         <div className="row"><button className="primary" style={{ flex: 1 }} onClick={submit} disabled={busy}><Icon name="check" /> {busy ? 'Menyimpan…' : `Submit inspeksi (${doneCount} item)`}</button></div>
-        {msg && <p className={msg.startsWith('OK|') ? 'ok' : 'err'}>{msg.replace(/^OK\|/, '')}</p>}
+        {msg && <p role="status" className={msg.startsWith('OK|') ? 'ok' : 'err'}>{msg.replace(/^OK\|/, '')}</p>}
         <p className="muted">Validasi: NC wajib catatan · NC kritis wajib foto · Critical/STOP wajib immediate action. Submitted tak bisa diedit patrol (§21) — koreksi via amendment/supervisor.</p>
       </div>
       <CriticalModal open={showCrit} onConfirm={submit} onCancel={() => setShowCrit(false)} />

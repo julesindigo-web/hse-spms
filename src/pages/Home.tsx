@@ -21,22 +21,32 @@ export default function Home() {
       });
     })();
   }, []);
+  const todayId = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <Protected>
-      <div className="pagehead"><div><h2>Selamat datang, {user?.name}</h2><p className="muted">{user?.role} · {user?.employee_id} · Shift hari ini: <b>{s.today} inspeksi</b></p></div></div>
-      <div className="kpis">
-        <div className="kpi"><span>Inspeksi total</span><b>{s.insp}</b></div>
-        <div className="kpi warn"><span>Temuan terbuka</span><b>{s.open}</b></div>
-        <div className="kpi bad"><span>CRITICAL terbuka</span><b>{s.crit}</b></div>
-        <div className="kpi"><span>Foto antre Drive</span><b>{s.pending}</b></div>
-      </div>
+      <section className="hero" aria-label="Ringkasan operasional">
+        <p className="kicker">Ringkasan operasional — {todayId}</p>
+        <h2>Selamat bertugas, {user?.name}</h2>
+        <p className="sub">{user?.role} · {user?.employee_id} · Hari ini tercatat <b>{s.today} inspeksi</b>. Radio/verbal langsung tetap jalur utama STOP WORK.</p>
+        <div className="hero-stats">
+          <div><b>{s.insp}</b><span>Total inspeksi</span></div>
+          <div><b>{s.open}</b><span>Temuan terbuka</span></div>
+          <div className={s.crit ? 'hs-bad' : ''}><b>{s.crit}</b><span>CRITICAL terbuka</span></div>
+          <div><b>{s.pending}</b><span>Foto antre Drive</span></div>
+        </div>
+        <div className="cta-row">
+          <Link className="btn light" to="/inspect"><Icon name="clipboard" /> Mulai inspeksi</Link>
+          <Link className="btn glass" to="/activity"><Icon name="calendar" /> Laporan harian</Link>
+          <Link className="btn glass" to="/monitoring"><Icon name="radar" /> Monitoring</Link>
+        </div>
+      </section>
       <div className="grid2">
         <Link className="card link" to="/inspect"><h3><Icon name="clipboard" /> Inspeksi Patrol Harian</h3><p>Mulai patrol: area, GPS, 316 checklist C/NC/OBS/NA dengan foto per item, critical control, dan STOP WORK.</p></Link>
         <Link className="card link" to="/activity"><h3><Icon name="calendar" /> Daily Activity Report</h3><p>Laporan aktivitas harian per tanggal, shift, dan area — lengkap dengan foto, export CSV, dan cetak PDF.</p></Link>
         <Link className="card link" to="/monitoring"><h3><Icon name="radar" /> Monitoring Safety Patrol</h3><p>Status area live, tren 7 hari, produktivitas patrol, serta daftar overdue.</p></Link>
         <Link className="card link" to="/findings"><h3><Icon name="alert" /> Temuan dan PIC</h3><p>Assign PIC, due date, corrective action, verifikasi, dan dual sign-off CRITICAL.</p></Link>
       </div>
-      {user && can(user.role, 'audit.read') && <div className="grid2">
+      {user && can(user.role, 'audit.read') && <div className="grid2" style={{ marginTop: 14 }}>
         <Link className="card link" to="/dashboard"><h3><Icon name="report" /> Dashboard Klasik</h3><p>Compliance, critical/high/open/overdue, dan tren closure.</p></Link>
         <Link className="card link" to="/reports"><h3><Icon name="report" /> Laporan dan Audit</h3><p>Finding register, inspection summary, dan audit trail.</p></Link>
       </div>}

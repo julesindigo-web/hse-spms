@@ -43,7 +43,7 @@ export default function Findings() {
 
   return (
     <Protected>
-      <div className="pagehead"><div><h2><Icon name="alert" /> Manajemen Temuan</h2><p className="muted">{shown.length}/{items.length} temuan · alur OPEN→…→CLOSED + REOPENED/REJECTED (§6) · CRITICAL dual sign-off (§2)</p></div>
+      <div className="pagehead"><div><p className="kicker">Tindak lanjut korektif</p><h2><Icon name="alert" /> Manajemen Temuan</h2><p className="muted">{shown.length}/{items.length} temuan · alur OPEN→…→CLOSED + REOPENED/REJECTED (§6) · CRITICAL dual sign-off (§2)</p></div>
         <div className="row">{['OPEN_ALL', 'CRITICAL', 'OVERDUE', 'ALL'].map(x => <button key={x} className={filter === x ? 'btnsel' : 'ghost'} onClick={() => setFilter(x)}>{x === 'OPEN_ALL' ? 'Terbuka' : x}</button>)}</div></div>
       {shown.length === 0 && <Empty title="Tidak ada temuan pada filter ini" hint="Temuan NC otomatis terbentuk dari Inspeksi. Critical tampil di sini + Monitoring." />}
       {shown.map(f => {

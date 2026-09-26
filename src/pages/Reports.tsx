@@ -11,7 +11,7 @@ export default function Reports() {
   useEffect(() => { (async () => { setF(await list('findings')); setIns(await list('inspections')); setAu(await list('audit')); })(); }, []);
   return (
     <Protected>
-      <h2><Icon name="report" /> Laporan (§30) + Audit (§31)</h2>
+      <p className="kicker">Dokumentasi dan audit trail</p><h2><Icon name="report" /> Laporan (§30) + Audit (§31)</h2>
       <div className="card">
         <div className="row">
           <button onClick={() => download(`finding-register-${Date.now()}.csv`, findingRegister(f))}><Icon name="download" /> Finding Register CSV</button>
