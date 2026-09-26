@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AppUser, Lang } from '../types';
-import { ensureSeed, list, audit } from '../services/store';
+import { ensureSeed, list } from '../services/store';
 import { ensureAccounts, loginLocal } from '../services/auth';
 import { DEMO } from '../services/firebase';
 
@@ -16,6 +16,7 @@ const KEY = 'hse-session-v2';
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [lang, setLang] = useState<Lang>('id-ID');
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
   useEffect(() => {
     (async () => {
       await ensureSeed();

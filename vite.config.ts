@@ -6,13 +6,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['icons/icon.svg', 'brand/pa-logo.png'],
       manifest: {
         name: 'Safety Patrol — PT Sifang Mining Indonesia',
         short_name: 'Safety Patrol',
         description: 'Offline-first safety patrol management (Blueprint v2.0). Product Design by Priastama Adiyoga.',
-        theme_color: '#0b3b39',
+        theme_color: '#0f766e',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
@@ -20,7 +20,8 @@ export default defineConfig({
         icons: [
           { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
-          { src: 'brand/pa-logo.png', sizes: '1536x1024', type: 'image/png', purpose: 'any' }
+          { src: 'brand/pa-logo.png', sizes: '1536x1024', type: 'image/png', purpose: 'any' },
+          { src: 'brand/pa-logo-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' }
         ]
       },
       workbox: {

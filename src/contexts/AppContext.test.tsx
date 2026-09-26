@@ -21,6 +21,7 @@ describe('AppContext', () => {
     render(<AppProvider><Probe on={c => { ctx = c; }} /></AppProvider>);
     expect(await screen.findByText('tamu')).not.toBeNull();
     expect(ctx!.lang).toBe('id-ID');
+    expect(document.documentElement.lang).toBe('id-ID');
     expect(ctx!.prodMode).toBe(false);
     let err: string | null = 'x';
     await act(async () => { err = await ctx!.login('patrol-sifang@gmail.com', '12345'); });
@@ -29,6 +30,7 @@ describe('AppContext', () => {
     expect(localStorage.getItem('hse-session-v2')).toContain('patrol-sifang@gmail.com');
     await act(async () => { ctx!.setLang('en-US'); });
     expect(ctx!.lang).toBe('en-US');
+    expect(document.documentElement.lang).toBe('en-US');
     ctx!.logout();
     expect(localStorage.getItem('hse-session-v2')).toBeNull();
     expect(await screen.findByText('tamu')).not.toBeNull();

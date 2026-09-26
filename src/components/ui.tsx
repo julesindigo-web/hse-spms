@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { can, type Action } from '../services/permissions';
+import { t } from '../data/i18n';
 import { Icon, BrandMark } from './icons';
 
 export const DESIGNER = 'Priastama Adiyoga';
@@ -16,14 +18,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <span className="brandtxt"><strong>Safety Patrol</strong><small>Sifang Mining · v2.0</small></span>
         </Link>
         <nav className="menu" aria-label="Navigasi utama">
-          <NavLink to="/" end><Icon name="home" /> Home</NavLink>
-          <NavLink to="/inspect"><Icon name="clipboard" /> Inspeksi</NavLink>
-          <NavLink to="/activity"><Icon name="calendar" /> Harian</NavLink>
-          <NavLink to="/findings"><Icon name="alert" /> Temuan</NavLink>
-          <NavLink to="/monitoring"><Icon name="radar" /> Monitoring</NavLink>
-          <NavLink to="/master"><Icon name="database" /> Master</NavLink>
-          <NavLink to="/reports"><Icon name="report" /> Laporan</NavLink>
-          {user?.role === 'HSE_ADMIN' && <NavLink to="/admin"><Icon name="gear" /> Admin</NavLink>}
+          <NavLink to="/" end><Icon name="home" /> {t('nav_home', lang)}</NavLink>
+          <NavLink to="/inspect"><Icon name="clipboard" /> {t('nav_inspect', lang)}</NavLink>
+          <NavLink to="/activity"><Icon name="calendar" /> {t('nav_activity', lang)}</NavLink>
+          <NavLink to="/findings"><Icon name="alert" /> {t('findings', lang)}</NavLink>
+          <NavLink to="/monitoring"><Icon name="radar" /> {t('nav_monitoring', lang)}</NavLink>
+          <NavLink to="/master"><Icon name="database" /> {t('nav_master', lang)}</NavLink>
+          <NavLink to="/reports"><Icon name="report" /> {t('reports', lang)}</NavLink>
+          {user?.role === 'HSE_ADMIN' && <NavLink to="/admin"><Icon name="gear" /> {t('admin', lang)}</NavLink>}
         </nav>
         <div className="userbox">
           <select value={lang} onChange={e => setLang(e.target.value as any)} aria-label="Bahasa">
@@ -32,9 +34,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {user ? (
             <span className="who"><span className="avatar">{user.name.slice(0, 1).toUpperCase()}</span>
               <span className="who-txt"><b>{user.name}</b><small>{user.role}</small></span>
-              <button className="ghost sm" onClick={() => { logout(); nav('/login'); }}>Keluar</button>
+              <button className="ghost sm" onClick={() => { logout(); nav('/login'); }}>{t('logout', lang)}</button>
             </span>
-          ) : <Link className="btn primary sm" to="/login">Masuk</Link>}
+          ) : <Link className="btn primary sm" to="/login">{t('login', lang)}</Link>}
         </div>
       </header>
       <main className="content">{children}</main>
@@ -58,6 +60,12 @@ export function Protected({ children, roles, action }: { children: React.ReactNo
 }
 
 export function CriticalModal({ open, onConfirm, onCancel }: { open: boolean; onConfirm: () => void; onCancel: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [open, onCancel]);
   if (!open) return null;
   return (
     <div className="modalback" role="dialog" aria-modal="true" aria-label="Konfirmasi kondisi kritis">

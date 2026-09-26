@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AppProvider } from '../contexts/AppContext';
@@ -45,9 +45,13 @@ describe('Layout', () => {
     const u = userEvent.setup();
     shell(<Layout><p>isi</p></Layout>);
     const sel = await screen.findByLabelText('Bahasa');
+    expect(await screen.findByText('Inspeksi')).not.toBeNull();
     await u.selectOptions(sel, 'en-US');
     expect((sel as HTMLSelectElement).value).toBe('en-US');
+    expect(await screen.findByText('Inspection')).not.toBeNull();
+    expect(screen.queryByText('Inspeksi')).toBeNull();
     await u.selectOptions(sel, 'id-ID');
+    expect(await screen.findByText('Inspeksi')).not.toBeNull();
   });
 });
 
@@ -87,6 +91,15 @@ describe('CriticalModal', () => {
     expect(onConfirm).toHaveBeenCalled();
     await u.click(r.getByText(/Batal/));
     expect(onCancel).toHaveBeenCalled();
+  });
+  it('Escape membatalkan; tombol lain tidak', async () => {
+    const onCancel = vi.fn();
+    const r = render(<CriticalModal open onConfirm={() => {}} onCancel={onCancel} />);
+    expect(r.getByText(/STOP WORK/)).not.toBeNull();
+    fireEvent.keyDown(document, { key: 'Enter' });
+    expect(onCancel).not.toHaveBeenCalled();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InspectionPage from './Inspection';
 import { clearAll, loginAs, renderWith } from '../test/render';
-import { list, put, uid } from '../services/store';
+import { list, put } from '../services/store';
 import { compressPhoto } from '../services/photos';
 
 vi.mock('../services/photos', () => ({
