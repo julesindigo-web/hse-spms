@@ -24,8 +24,6 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // §24 cache versioning: checklist master dibedakan via revision+content_hash di runtime (lihat src/services/sync.ts),
-        // workbox hanya untuk app-shell. Jangan cache Firestore/Apps Script.
         navigateFallback: 'index.html',
         runtimeCaching: [
           {

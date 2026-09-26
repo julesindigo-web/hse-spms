@@ -1,6 +1,3 @@
-// HSE SPMS Blueprint v2.0 Canonical — Domain Types (§2,§5,§6,§7,§8,§9,§20)
-// Bahasa: Indonesia. RULE-005: snapshot historis. RULE-006: critical override.
-
 export type Role = 'PATROL' | 'SUPERVISOR' | 'HSE_ADMIN' | 'MANAGEMENT_VIEWER' | 'HSE_AUDITOR_OPTIONAL';
 export type Lang = 'id-ID' | 'zh-CN' | 'en-US';
 
@@ -98,7 +95,6 @@ export interface AuditEvent {
 }
 
 export const RISK_MATRIX: Record<string, RiskLevel> = {
-  // severity x likelihood → level (disahkan site, bukan placeholder — §14)
   '1-1': 'LOW', '1-2': 'LOW', '1-3': 'LOW', '1-4': 'MEDIUM', '1-5': 'MEDIUM',
   '2-1': 'LOW', '2-2': 'LOW', '2-3': 'MEDIUM', '2-4': 'MEDIUM', '2-5': 'HIGH',
   '3-1': 'LOW', '3-2': 'MEDIUM', '3-3': 'MEDIUM', '3-4': 'HIGH', '3-5': 'HIGH',

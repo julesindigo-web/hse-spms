@@ -1,4 +1,3 @@
-// Critical Controls 11 + TARP + Parameters + Areas (§11,§12,§13)
 import type { CriticalControl, TarpRule, ParameterStandard, Area } from '../types';
 
 export const CRITICAL_CONTROLS: CriticalControl[] = [

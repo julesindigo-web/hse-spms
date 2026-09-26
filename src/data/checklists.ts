@@ -1,6 +1,3 @@
-// Katalog checklist produksi — 316 item riil siap pakai (§10).
-// Warisan: PS50 LP25 DP25 ETO20 EFO20 LS35 TM55 PC36 BS18 = 284. Baru v2.0: WM10 CS7 FS10 LT5 = 32.
-// Setiap item: label 3 bahasa + standar acuan + tipe parameter + critical link + wajib foto saat NC.
 import type { ChecklistItem, ParamType } from '../types';
 
 type Row = [id: string, mod: string, idLabel: string, enLabel: string, std: string, param?: ParamType, cc?: string, photo?: boolean, unit?: boolean];

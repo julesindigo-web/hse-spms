@@ -1,4 +1,3 @@
-// i18n id/zh/en — key-value terpisah dari kode (§8,§37). Fallback id-ID.
 import type { Lang } from '../types';
 
 export const STRINGS: Record<string, Record<Lang, string>> = {

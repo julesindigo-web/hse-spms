@@ -1,5 +1,3 @@
-// Store produksi offline-first §24: IndexedDB (idb) + fallback memori.
-// Sumber kebenaran lokal; Firestore/Drive adalah sinkronisasi sekunder bila dikonfigurasi.
 import { openDB, type IDBPDatabase } from 'idb';
 
 const DB = 'hse-spms-v2';
@@ -15,7 +13,7 @@ async function getDb(): Promise<IDBPDatabase | null> {
         for (const s of STORES) {
           try {
             d.createObjectStore(s, { keyPath: 'id' });
-          } catch { /* store sudah ada — lanjutkan */ }
+          } catch {}
         }
       }
     });
@@ -47,7 +45,7 @@ export async function get(store: string, id: string): Promise<any | undefined> {
 }
 export async function remove(store: string, id: string): Promise<void> {
   const d = await getDb();
-  if (d) { try { await d.delete(store as any, id); return; } catch { /* fallback */ } }
+  if (d) { try { await d.delete(store as any, id); return; } catch {} }
   memStore(store).delete(id);
 }
 export async function metaGet(key: string): Promise<any> {
@@ -61,8 +59,6 @@ export function uid(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 export async function audit(actor_uid: string, actor_role: any, event: string, entity: string, entity_id: string, detail?: string): Promise<void> {
-  // put() hanya gagal bila id hilang (tak mungkin: uid selalu terisi) atau IndexedDB rusak
-  // total — pada kondisi itu put() utama pemanggil pun gagal, sehingga tak ada yang disembunyikan.
   await put('audit', { id: uid('aud'), at: new Date().toISOString(), actor_uid, actor_role, event, entity, entity_id, detail });
 }
 

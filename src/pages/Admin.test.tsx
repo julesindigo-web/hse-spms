@@ -18,7 +18,6 @@ describe('Admin', () => {
   }
   it('kelola user: tambah, nonaktif/aktif, reset, hapus, ganti password', async () => {
     const { u, r, oldPass } = await open();
-    // tambah
     await u.type(r.getByLabelText('Nama'), 'Petugas Baru');
     await u.type(r.getByLabelText('Email'), 'baru@sifang.co.id');
     await u.type(r.getByLabelText('Employee ID'), 'SIF-099');
@@ -26,32 +25,26 @@ describe('Admin', () => {
     await u.selectOptions(r.getByLabelText('Role'), 'SUPERVISOR');
     await u.click(r.getByText('Buat akun'));
     expect(await r.findByText('Petugas Baru')).not.toBeNull();
-    // duplikat ditolak
     await u.type(r.getByLabelText('Nama'), 'X');
     await u.type(r.getByLabelText('Email'), 'baru@sifang.co.id');
     await u.type(r.getByLabelText('Employee ID'), 'SIF-100');
     await u.type(r.getByLabelText('Password awal'), 'PasswordBaru2');
     await u.click(r.getByText('Buat akun'));
     expect(await r.findByText(/sudah ada/)).not.toBeNull();
-    // nonaktifkan + aktifkan
     const toggles = r.getAllByText('Nonaktifkan');
     await u.click(toggles[0]);
     expect(await r.findByText('Aktifkan')).not.toBeNull();
     await u.click(r.getAllByText('Aktifkan')[0]);
-    // reset password
     vi.stubGlobal('prompt', vi.fn(() => 'PasswordReset1'));
     window.alert = vi.fn();
     await u.click(r.getAllByText('Reset PW')[0]);
-    // hapus (confirm true lalu false)
     vi.stubGlobal('confirm', vi.fn(() => true));
     const dels = r.getAllByText('Hapus');
     await u.click(dels[dels.length - 1]);
-    // ganti password sendiri (password awal milik akun login aktif)
     await u.type(r.getByLabelText('Lama'), oldPass as string);
     await u.type(r.getByLabelText(/^Baru/), 'Password.Baru99');
     await u.click(r.getByText('Ganti password'));
     expect(await r.findByText(/diganti/)).not.toBeNull();
-    // lama salah → pesan error
     await u.type(r.getByLabelText('Lama'), 'salah');
     await u.type(r.getByLabelText(/^Baru/), 'Password.Baru100');
     await u.click(r.getByText('Ganti password'));

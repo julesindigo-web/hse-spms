@@ -40,7 +40,7 @@ describe('captureGps', () => {
     expect((await captureGps()).mocked).toBe(true);
   });
   it('mocked saat timeout tanpa respons', async () => {
-    vi.stubGlobal('navigator', { geolocation: { getCurrentPosition() { /* diam */ } } });
+    vi.stubGlobal('navigator', { geolocation: { getCurrentPosition() {} } });
     const g = await captureGps(-999);
     expect(g.mocked).toBe(true);
   });

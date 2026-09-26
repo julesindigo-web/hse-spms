@@ -96,7 +96,6 @@ describe('AppContext', () => {
     let ctx: ReturnType<typeof useApp> | null = null;
     render(<AppProvider><Probe on={c => { ctx = c; }} /></AppProvider>);
     expect(await screen.findByText('tamu')).not.toBeNull();
-    // menunggu effect selesai: kunci korup dibersihkan dari penyimpanan
     await waitFor(() => expect(localStorage.getItem('hse-session-v2')).toBeNull(), { timeout: 8000 });
     await act(async () => { ctx!.refreshUser(); });
     expect(await screen.findByText('tamu')).not.toBeNull();

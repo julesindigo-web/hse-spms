@@ -66,22 +66,16 @@ describe('Inspection', () => {
     await u.selectOptions(r.getByLabelText(/^Area/), 'PIT_STOP');
     await u.selectOptions(r.getByLabelText('Sub-area'), 'PIT_STOP-A');
     await put('attachments', { id: 'att-1', inspection_id: 'draft', filename: 's.jpg', mime: 'image/jpeg', sha256: 's', size_kb: 1, upload_status: 'QUEUED', dataUrl: 'data:seeded' });
-    // TM-001 kritis NC tanpa catatan/foto
     await ncRow(u, r, 0, '');
     await u.click(r.getByText(/Submit inspeksi/));
     expect(await r.findByText(/belum ada catatan/)).not.toBeNull();
-    // isi catatan → wajib foto (TM-001 tanpa unit-box, sesuai blueprint)
     fill(rows(r)[0].querySelector('textarea'), 'Berm rendah');
     await u.click(r.getByText(/Submit inspeksi/));
     expect(await r.findByText(/item kritis NC wajib foto/)).not.toBeNull();
-    // tambah foto 2x (rec ditemukan + photos terisi) → sukses
     await uploadPhoto(u, r, 0);
     await uploadPhoto(u, r, 0);
-    // TM-002 (tanpa CC) NC + catatan, tanpa foto → boleh
     await ncRow(u, r, 1, 'Sempit sedikit');
-    // TM-003 eksplisit C (catatan/actual/unit kosong)
     await u.click(rows(r)[2].querySelectorAll('.seg button')[0]);
-    // TM-023 (unit-spesifik): OBS + aktual + unit terisi
     const r23 = rows(r)[22];
     await u.click(r23.querySelectorAll('.seg button')[2]);
     const t23 = r23.querySelectorAll('input:not([type="file"]):not([type="checkbox"])');
@@ -98,7 +92,6 @@ describe('Inspection', () => {
   it('stop work saja + CC-005: modal radio + immediate wajib', async () => {
     const { u, r } = await open();
     await u.selectOptions(r.getByLabelText(/Modul checklist/), 'TRAFFIC_MANAGEMENT');
-    // bagian 1: stop work tanpa CC
     await u.click(r.getByRole('checkbox', { name: /STOP WORK/ }));
     await ncRow(u, r, 0, 'Berm jebol');
     await uploadPhoto(u, r, 0);
@@ -111,7 +104,6 @@ describe('Inspection', () => {
     await u.click(r.getByText(/Submit inspeksi/));
     await u.click(r.getByText(/Sudah radio — lanjut submit/));
     expect(await r.findByText(/tersimpan —/, {}, { timeout: 10000 })).not.toBeNull();
-    // bagian 2: CC-005 + uncheck CC-001 + NC ber-aktual
     await u.click(r.getByRole('checkbox', { name: /CC-001/ }));
     await u.click(r.getByRole('checkbox', { name: /CC-001/ }));
     await u.click(r.getByRole('checkbox', { name: /CC-005/ }));
@@ -136,14 +128,11 @@ describe('Inspection', () => {
     await u.click(btns[2]);
     const texts = rs[0].querySelectorAll('input:not([type="file"]):not([type="checkbox"])');
     fill(texts[0], 'HD-042');
-    // sukses di item segar (photosOf undefined, rec hilang)
     await uploadPhoto(u, r, 1);
     expect(await r.findByText(/tersimpan \(/)).not.toBeNull();
-    // dialog file dibatalkan (files null)
     const cancelInput = rs[1].querySelector('input[type="file"]') as HTMLInputElement;
     Object.defineProperty(cancelInput, 'files', { value: null, configurable: true });
     fireEvent.change(cancelInput);
-    // foto gagal: Error dan non-Error
     vi.mocked(compressPhoto).mockRejectedValueOnce(new Error('rusak'));
     await uploadPhoto(u, r, 1);
     expect(await r.findByText(/Gagal foto: rusak/)).not.toBeNull();
@@ -151,7 +140,6 @@ describe('Inspection', () => {
     await uploadPhoto(u, r, 1);
     expect(await r.findByText(/Gagal foto: gagal-tanpa-pesan/)).not.toBeNull();
     await u.click(r.getByText('Refresh GPS'));
-    // submit tanpa NC → SAFE
     await u.click(r.getByText(/Submit inspeksi/));
     expect(await r.findByText(/tersimpan —/, {}, { timeout: 10000 })).not.toBeNull();
   });

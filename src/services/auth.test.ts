@@ -57,7 +57,6 @@ describe('ensureAccounts', () => {
       const fixed = (await get('users', acc.uid)) as Record<string, unknown>;
       expect(fixed[f]).not.toBe(v);
     }
-    // employee_id hilang → jalur update; email hilang → dibuat ulang
     const users = await list('users');
     const acc = users.find((u: { email: string }) => u.email === target);
     const { employee_id: _m, ...noEmp } = acc;
@@ -71,7 +70,6 @@ describe('ensureAccounts', () => {
     await ensureAccounts();
     const recreated = (await list('users')).find((u: { email: string }) => u.email === target) as Record<string, unknown>;
     expect(recreated.employee_id).toBe(REQUIRED_ACCOUNTS[0].employee_id);
-    // pencarian melewati record tanpa email tanpa gagal
     expect((await loginLocal('tak@ada.xx', 'p')).error).toMatch('tidak terdaftar');
   });
 });
@@ -100,7 +98,6 @@ describe('changePassword', () => {
     const acc = users.find((u: { email: string }) => u.email === REQUIRED_ACCOUNTS[0].email);
     expect(await changePassword(acc.uid, 'salah', 'Password.Baru1')).toMatch('lama salah');
     expect(await changePassword(acc.uid, REQUIRED_ACCOUNTS[0].pass, 'pendek')).toMatch('minimal 8');
-    // sukses pada akun non-required (required disinkron ulang oleh ensureAccounts)
     const plain = users.find((u: { email: string }) => u.email === DEFAULT_ACCOUNTS[0].email);
     expect(await changePassword(plain.uid, DEFAULT_ACCOUNTS[0].pass, 'Password.Baru1')).toBeNull();
     const ok = await loginLocal(plain.email, 'Password.Baru1');

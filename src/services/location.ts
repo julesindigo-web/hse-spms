@@ -1,4 +1,3 @@
-// GPS §16: Geolocation API + threshold akurasi 50m (configurable) + fallback tercatat.
 export interface GpsFix { lat: number; lng: number; accuracy_m: number; captured_at: string; mocked?: boolean }
 
 export async function captureGps(timeoutMs = 12000): Promise<GpsFix> {

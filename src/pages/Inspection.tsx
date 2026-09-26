@@ -95,7 +95,6 @@ export default function InspectionPage() {
         created_at: new Date().toISOString(), updated_at: new Date().toISOString()
       };
       await put('inspections', insp as any);
-      // Simpan foto draft → kaitkan ke inspeksi (update attachment inspection_id)
       const atts = await list('attachments');
       for (const a of atts.filter((x: any) => x.inspection_id === 'draft')) {
         await put('attachments', { ...a, inspection_id: insp.id });

@@ -24,15 +24,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const raw = localStorage.getItem(KEY);
         if (raw) {
           const u = JSON.parse(raw) as AppUser;
-          // revalidasi active (§3: perubahan role ditegakkan setelah sinkron)
           const users = await list('users');
           const cur = users.find((x: any) => x.uid === u.uid);
-          // Semua penulis users selalu menyertakan areas (tipe AppUser mewajibkan) — akses langsung.
           if (cur && cur.active) setUser({ uid: cur.uid, email: cur.email, name: cur.name, employee_id: cur.employee_id, role: cur.role, active: true, areas: cur.areas });
           else localStorage.removeItem(KEY);
         }
       } catch {
-        // Sesi rusak/tak terbaca: bersihkan agar tak meracuni start berikutnya.
         localStorage.removeItem(KEY);
       }
     })();
@@ -46,7 +43,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
   function logout() { setUser(null); localStorage.removeItem(KEY); }
   function refreshUser() {
-    try { const raw = localStorage.getItem(KEY); if (raw) setUser(JSON.parse(raw)); } catch { /* noop */ }
+    try { const raw = localStorage.getItem(KEY); if (raw) setUser(JSON.parse(raw)); } catch {}
   }
   return <C.Provider value={{ user, lang, setLang, login, logout, refreshUser, prodMode: !DEMO }}>{children}</C.Provider>;
 }

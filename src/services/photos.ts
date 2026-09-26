@@ -1,5 +1,3 @@
-// Engine foto produksi §17: kompresi client 300–800KB, thumbnail, antrean, metadata sha.
-// + koneksi Google Drive via Apps Script bridge §19 (tiket) dengan pengaturan HSE_ADMIN.
 import { put, uid, metaGet, metaPut } from './store';
 import { APPS_SCRIPT_URL } from './firebase';
 
@@ -29,7 +27,6 @@ export async function testDriveConnection(): Promise<{ ok: boolean; msg: string 
   }
 }
 
-// Kompresi: target 300–800KB JPEG (§17). preserve EXIF orientasi dasar via canvas.
 export async function compressPhoto(file: File, maxDim = 1600, quality = 0.82): Promise<{ dataUrl: string; width: number; height: number; size_kb: number }> {
   const bmp = await createImageBitmap(file);
   const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
@@ -39,7 +36,6 @@ export async function compressPhoto(file: File, maxDim = 1600, quality = 0.82): 
   const ctx = cv.getContext('2d')!;
   ctx.drawImage(bmp, 0, 0, w, h);
   let q = quality, dataUrl = cv.toDataURL('image/jpeg', q);
-  // turunkan kualitas bertahap hingga ≤800KB atau q=0.55
   while (dataUrl.length / 1024 > 800 && q > 0.55) { q -= 0.08; dataUrl = cv.toDataURL('image/jpeg', q); }
   return { dataUrl, width: w, height: h, size_kb: Math.round(dataUrl.length / 1024) };
 }
@@ -69,7 +65,6 @@ export async function queuePhoto(opts: {
     filename: opts.filename, mime_type: opts.mime, sha256: pseudoSha(opts.dataUrl),
     status: 'QUEUED', expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(), attachment_id: id
   });
-  // Coba dorong langsung bila bridge tersedia (best-effort; antrean tetap sumber kebenaran §24/§44).
   try {
     const s = await getDriveSettings();
     if (s.appsScriptUrl) {
@@ -78,7 +73,7 @@ export async function queuePhoto(opts: {
         body: JSON.stringify({ ticket_id, filename: opts.filename, mime_type: opts.mime, file_base64: opts.dataUrl, note: 'hse-spms-upload' })
       });
     }
-  } catch { /* tetap QUEUED → retry di Admin/Sync */ }
+  } catch {}
   return id;
 }
 

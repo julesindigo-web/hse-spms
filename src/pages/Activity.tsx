@@ -8,7 +8,6 @@ import { useApp } from '../contexts/AppContext';
 import { Icon } from '../components/icons';
 import { AREAS } from '../data/master';
 
-// Daily Activity Reporting — laporan aktivitas harian patrol per tanggal/shift/area (§30).
 export default function Activity() {
   const { user } = useApp();
   const [ins, setIns] = useState<any[]>([]);

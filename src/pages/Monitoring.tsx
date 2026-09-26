@@ -5,7 +5,6 @@ import { Icon } from '../components/icons';
 import { areaStatus, inspectionCompliance } from '../services/engines';
 import { AREAS } from '../data/master';
 
-// Safety Patrol Monitoring — pemantauan live: status area, tren 7 hari, produktivitas patrol, overdue/repeat.
 export default function Monitoring() {
   const [ins, setIns] = useState<any[]>([]);
   const [fnd, setFnd] = useState<any[]>([]);
@@ -15,7 +14,6 @@ export default function Monitoring() {
   const crit = open.filter(f => f.risk_level === 'CRITICAL');
   const overdue = open.filter(f => f.due_date && f.due_date < new Date().toISOString().slice(0, 10));
 
-  // Tren 7 hari
   const days = useMemo(() => {
     const out: Array<{ d: string; n: number; c: number }> = [];
     for (let k = 6; k >= 0; k--) {
@@ -25,7 +23,6 @@ export default function Monitoring() {
     return out;
   }, [ins, fnd]);
 
-  // Produktivitas per patroli (kualitas, bukan sekadar jumlah §40)
   const prod = useMemo(() => {
     const m = new Map<string, { name: string; insp: number; nc: number; crit: number }>();
     for (const i of ins) {

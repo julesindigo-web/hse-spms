@@ -40,7 +40,6 @@ describe('testDriveConnection', () => {
     expect((await testDriveConnection()).ok).toBe(false);
     vi.stubGlobal('fetch', vi.fn(async () => { throw 'gagal-tanpa-pesan'; }));
     expect((await testDriveConnection()).msg).toMatch('gagal-tanpa-pesan');
-    // hang + fake timer 8s → abort → catch
     vi.useFakeTimers();
     let aborted = false;
     vi.stubGlobal('fetch', vi.fn((_u: string, o: RequestInit) => new Promise((_res, rej) => {

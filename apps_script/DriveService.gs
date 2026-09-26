@@ -1,5 +1,3 @@
-// DriveService.gs — folder YEAR/MONTH/DATE/SHIFT/INSPECTION/AREA §18.
-// Ownership: akun fungsional/organisasi atau Shared Drive (§18 RULE-024). Bukan akun personal.
 var ROOT_NAME = 'HSE SAFETY PATROL';
 function DriveService_root() {
   var it = DriveApp.getFoldersByName(ROOT_NAME);

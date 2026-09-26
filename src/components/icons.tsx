@@ -1,4 +1,3 @@
-// Ikon SVG elegan — goresan 1.6px, geometris minimal, tanpa emoji.
 import type { SVGProps } from 'react';
 
 export type IconName =
@@ -43,7 +42,6 @@ export function Icon({ name, size = 17, className }: { name: IconName; size?: nu
   );
 }
 
-// Monogram brand — perisai Sifang yang tenang dan premium.
 export function BrandMark({ size = 34 }: { size?: number }) {
   return (
     <span className="brandmark" style={{ width: size, height: size }} aria-hidden="true">

@@ -1,4 +1,3 @@
-// Matriks hak akses §2 — enforcement lapis UI + data (bukan hanya sembunyikan tombol §22).
 import type { Role } from '../types';
 
 export type Action =

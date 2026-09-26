@@ -20,7 +20,6 @@ export default function Findings() {
   useEffect(() => { load(); }, []);
 
   async function act(f: Finding, next: Finding['state'], extra: Partial<Finding> = {}) {
-    // Protected menjamin user non-null — tanpa guard defensif yang tak terjangkau.
     const me = user!;
     if (next === 'ASSIGNED' && !can(me.role, 'finding.assign')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa assign PIC.');
     if (next === 'VERIFIED' && !can(me.role, 'finding.verify')) return alert('Hanya SUPERVISOR/HSE_ADMIN yang bisa verify.');
@@ -31,7 +30,6 @@ export default function Findings() {
     }
     const upd = { ...f, ...extra, state: next, updated_at: new Date().toISOString() } as any;
     if (next === 'CLOSED' && (f as any).risk_level === 'CRITICAL') {
-      // canCloseFinding di atas sudah memastikan second approver terisi untuk CRITICAL.
       upd.second_approver_uid = second[f.id];
       upd.second_approver_at = new Date().toISOString();
       await audit(me.uid, me.role, 'SECOND_APPROVAL_CRITICAL_CLOSURE', 'findings', f.id, `dual sign-off oleh ${upd.second_approver_uid}`);
@@ -41,7 +39,6 @@ export default function Findings() {
     load();
   }
 
-  // Hanya 4 filter eksis (tombol UI) — OVERDUE sebagai cabang akhir, tanpa else mati.
   const shown = items.filter(f => filter === 'ALL' ? true : filter === 'OPEN_ALL' ? !['CLOSED', 'VERIFIED', 'REJECTED'].includes(f.state) : filter === 'CRITICAL' ? (f as any).risk_level === 'CRITICAL' : ((f as any).due_date && (f as any).due_date < new Date().toISOString().slice(0, 10) && !['CLOSED', 'VERIFIED'].includes(f.state)));
 
   return (

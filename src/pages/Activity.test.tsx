@@ -62,7 +62,6 @@ describe('Activity', () => {
     const r = renderWith('/activity', <Activity />);
     expect(await r.findByText('Daily Activity Report')).not.toBeNull();
     expect(r.getByText('HAUL_ROAD')).not.toBeNull();
-    // ubah filter: shift, tanggal, area (mencakup semua cabang filter)
     await u.selectOptions(r.getByLabelText('Shift'), 'PAGI');
     await u.selectOptions(r.getByLabelText('Area'), 'SLOPE');
     await u.selectOptions(r.getByLabelText('Area'), 'SEMUA');

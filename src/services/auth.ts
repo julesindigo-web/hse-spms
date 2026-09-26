@@ -1,5 +1,3 @@
-// Auth produksi: akun lokal dengan password (hash SHA-256 + salt) + Firebase Auth bila env tersedia.
-// §2 RBAC + §3 lifecycle (active=false, bukan delete) + §35 minimisasi PII.
 import type { AppUser, Role } from '../types';
 import { get, list, put, metaGet, metaPut, uid, audit } from './store';
 
@@ -47,7 +45,6 @@ async function upsertRequired(): Promise<void> {
       await put('users', { ...acc, id: acc.uid } as any);
       await audit(id, a.role, 'CREATE_USER', 'users', id, `required account ${email}`);
     } else {
-      // Pastikan role + password + aktif sesuai permintaan pemilik (migrasi DB lama).
       const need = found.pass_hash !== pass_hash || found.role !== a.role || !found.active ||
         found.name !== a.name || (found.employee_id ?? '') !== a.employee_id;
       if (need) {
@@ -74,7 +71,6 @@ export async function ensureAccounts(): Promise<void> {
     }
     await metaPut('accounts_v2', true);
   }
-  // Akun milik user — selalu dipastikan ada & sesuai (berlaku juga untuk DB lama).
   await upsertRequired();
 }
 

@@ -1,4 +1,3 @@
-// Engines: risk (§14), area status (§39), closure (§2), stop-work (§15). RULE-006/015.
 import { riskLevel, type AreaStatus, type Finding, type Inspection, type RiskLevel } from '../types';
 
 export function scoreFinding(sev: number, lik: number): { score: number; level: RiskLevel } {
@@ -10,7 +9,6 @@ export function areaStatus(args: {
   criticalControlFailure: string[]; tarpRed: boolean; hasCriticalFinding: boolean;
   hasHighFinding: boolean; compliancePct: number;
 }): AreaStatus {
-  // RULE-006/015: critical failure override compliance — tidak bisa dibatalkan persentase tinggi.
   if (args.criticalControlFailure.length > 0) return 'CRITICAL';
   if (args.tarpRed) return 'CRITICAL';
   if (args.hasCriticalFinding) return 'CRITICAL';
@@ -20,7 +18,6 @@ export function areaStatus(args: {
 }
 
 export function canCloseFinding(f: Finding, role: string, secondApproverUid?: string): { ok: boolean; reason: string } {
-  // RULE-022: CRITICAL wajib dual sign-off HSE_ADMIN.
   if (f.risk_level === 'CRITICAL') {
     if (role !== 'HSE_ADMIN') return { ok: false, reason: 'CRITICAL hanya bisa ditutup HSE_ADMIN (dual sign-off)' };
     if (f.closure_approval_level !== 'DUAL_SIGN_OFF') return { ok: false, reason: 'CRITICAL wajib DUAL_SIGN_OFF' };

@@ -1,4 +1,3 @@
-// Reporting §30 + Daily Summary §45 (CSV/XLSX-ready via CSV; PDF via print).
 import type { Finding, Inspection } from '../types';
 
 export function toCSV(rows: Record<string, any>[]): string {
