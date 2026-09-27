@@ -46,7 +46,7 @@ export default function Login() {
             <li><code>patrol1@sifang.co.id</code> — PATROL cadangan</li>
             <li><code>supervisor@sifang.co.id</code> — SUPERVISOR</li>
           </ul>
-          <p className="muted">Lupa password? Hubungi HSE_ADMIN untuk reset di <Link to="/admin">Admin → Pengguna</Link>. Akun dinonaktifkan via <code>active=false</code>, bukan hapus (§3).</p>
+          <p className="muted">Lupa password? Hubungi HSE Admin untuk reset di <Link to="/admin">Admin → Pengguna</Link>. Akun dinonaktifkan, bukan dihapus.</p>
         </details>
         <div className="authfoot">
           <BrandMark size={20} />

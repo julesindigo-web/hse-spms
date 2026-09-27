@@ -20,10 +20,10 @@ export async function testDriveConnection(): Promise<{ ok: boolean; msg: string 
     const to = setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(s.appsScriptUrl, { method: 'GET', signal: ctrl.signal });
     clearTimeout(to);
-    if (r.ok) return { ok: true, msg: 'Bridge Apps Script reachable (GET 200). Upload memakai POST + ID Token + tiket (§19/§23).' };
+    if (r.ok) return { ok: true, msg: 'Bridge Apps Script reachable (GET 200). Upload memakai POST + ID Token + tiket.' };
     return { ok: false, msg: `Bridge merespons HTTP ${r.status}. Periksa deployment Web App (Execute as: Me, Access: Anyone).` };
   } catch (e: any) {
-    return { ok: false, msg: `Tidak dapat menjangkau bridge (${e?.message ?? e}). Foto aman di antrean lokal, akan retry saat online (§44).` };
+    return { ok: false, msg: `Tidak dapat menjangkau bridge (${e?.message ?? e}). Foto aman di antrean lokal, akan retry saat online.` };
   }
 }
 

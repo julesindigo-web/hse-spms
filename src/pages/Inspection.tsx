@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CHECKLIST_MASTER, MODULES, MASTER_REVISION } from '../data/checklists';
 import { AREAS, CRITICAL_CONTROLS, STOP_WORK_TRIGGERS } from '../data/master';
+import { humanize } from '../data/i18n';
 import { useApp } from '../contexts/AppContext';
 import { Protected, CriticalModal, Empty } from '../components/ui';
 import { put, uid, audit, list } from '../services/store';
@@ -69,7 +70,7 @@ export default function InspectionPage() {
     if (ncNoNote.length > 0) return `${ncNoNote.length} item NC belum ada catatan/actual value (${ncNoNote.slice(0, 3).map(c => c.id).join(', ')}…).`;
     const ncNoPhoto = CHECKLIST_MASTER.filter(c => c.is_critical_linked && results[c.id]?.r === 'NC' && photosOf(c.id).length === 0);
     if (ncNoPhoto.length > 0) return `${ncNoPhoto.length} item kritis NC wajib foto (${ncNoPhoto.slice(0, 3).map(c => c.id).join(', ')}…).`;
-    if ((failedCC.length > 0 || stopWork) && !immediate.trim()) return 'Critical/STOP WORK wajib isi Immediate action.';
+    if ((failedCC.length > 0 || stopWork) && !immediate.trim()) return 'Critical/Stop Work wajib isi Immediate action.';
     return null;
   }
 
@@ -127,30 +128,30 @@ export default function InspectionPage() {
       <div className="card formgrid">
         <label>Area*<select value={area} onChange={e => { setArea(e.target.value); setSub(''); }}>{AREAS.map(a => <option key={a.id} value={a.id}>{a.name['id-ID']}</option>)}</select></label>
         <label>Sub-area<select value={sub} onChange={e => setSub(e.target.value)}><option value="">—</option>{areaSubs.map(s => <option key={s.id} value={s.id}>{s.name['id-ID']}</option>)}</select></label>
-        <label>Shift*<select value={shift} onChange={e => setShift(e.target.value as any)}><option>PAGI</option><option>SIANG</option><option>MALAM</option></select></label>
-        <label>Tipe*<select value={type} onChange={e => setType(e.target.value as InspectionType)}><option>DAILY_PATROL</option><option>POST_RAIN</option><option>FOLLOW_UP</option><option>SPECIAL_INSPECTION</option><option>INCIDENT_RELATED</option><option>PRE_OPERATION</option></select></label>
+        <label>Shift*<select value={shift} onChange={e => setShift(e.target.value as any)}>{['PAGI', 'SIANG', 'MALAM'].map(s => <option key={s} value={s}>{humanize(s)}</option>)}</select></label>
+        <label>Tipe*<select value={type} onChange={e => setType(e.target.value as InspectionType)}>{(['DAILY_PATROL', 'POST_RAIN', 'FOLLOW_UP', 'SPECIAL_INSPECTION', 'INCIDENT_RELATED', 'PRE_OPERATION'] as InspectionType[]).map(x => <option key={x} value={x}>{humanize(x)}</option>)}</select></label>
         <label>Cuaca*<select value={weather} onChange={e => setWeather(e.target.value)}><option>Cerah</option><option>Berawan</option><option>Hujan ringan</option><option>Hujan lebat</option><option>Petir</option><option>Berkabut/debu tebal</option></select></label>
         <label>Cari item<input placeholder="mis. TM-003 / berm / rem…" value={q} onChange={e => setQ(e.target.value)} /></label>
       </div>
 
       <div className="card">
-        <h3><Icon name="shield" /> Critical control gagal? <small className="muted">(otomatis CRITICAL, override compliance §14)</small></h3>
+        <h3><Icon name="shield" /> Critical control gagal? <small className="muted">(otomatis Critical, override compliance)</small></h3>
         <div className="chips">{CRITICAL_CONTROLS.map(c => <label key={c.id} className="chip"><input type="checkbox" checked={failedCC.includes(c.id)} onChange={e => setFailedCC(p => e.target.checked ? [...p, c.id] : p.filter(x => x !== c.id))} /> <b>{c.id}</b> {c.name['id-ID']}</label>)}</div>
-        <label className="chip dangerline" style={{ marginTop: 8 }}><input type="checkbox" checked={stopWork} onChange={e => setStopWork(e.target.checked)} /> STOP WORK — {STOP_WORK_TRIGGERS.length} trigger §15 (radio terlebih dahulu)</label>
+        <label className="chip dangerline" style={{ marginTop: 8 }}><input type="checkbox" checked={stopWork} onChange={e => setStopWork(e.target.checked)} /> Stop Work — {STOP_WORK_TRIGGERS.length} pemicu (radio terlebih dahulu)</label>
         {(failedCC.length > 0 || stopWork) && <label style={{ marginTop: 8 }}>Immediate action*<textarea value={immediate} onChange={e => setImmediate(e.target.value)} placeholder="Tindakan langsung yang sudah dilakukan di lapangan…" rows={2} /></label>}
       </div>
 
       <div className="card">
         <div className="row" style={{ justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0 }}>{module} — {items.length} item</h3>
-          <select aria-label="Modul checklist" value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{m}</option>)}</select>
+          <h3 style={{ margin: 0 }}>{humanize(module)} — {items.length} item</h3>
+          <select aria-label="Modul checklist" value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{humanize(m)}</option>)}</select>
         </div>
         {items.length === 0 && <Empty title="Tidak ada item cocok" hint="Ubah kata kunci atau modul." />}
         {items.map(it => {
           const v = results[it.id] ?? { r: 'C' as ResultStatus, note: '', actual: '', unit: '', photos: [] };
           return (
             <div key={it.id} className="checkrow">
-              <div><strong>{it.id}</strong> — {it.label['id-ID']}<br /><small className="muted">Standar: {it.standard_ref} · {it.param_type}{it.is_critical_linked ? ` · Terkait ${it.critical_control_id}` : ''}{it.requires_photo_on_nc ? ' · Foto wajib saat NC' : ''}</small></div>
+              <div><strong>{it.id}</strong> — {it.label['id-ID']}<br /><small className="muted">Standar: {it.standard_ref} · {humanize(it.param_type)}{it.is_critical_linked ? ` · Terkait ${it.critical_control_id}` : ''}{it.requires_photo_on_nc ? ' · Foto wajib saat NC' : ''}</small></div>
               <div className="seg" role="radiogroup" aria-label={it.id}>
                 {(['C', 'NC', 'OBS', 'NA'] as ResultStatus[]).map(r => <button key={r} data-on={v.r === r ? r : ''} className={v.r === r ? 'btnsel' : ''} onClick={() => set(it.id, { r })} title={r === 'C' ? 'Comply' : r === 'NC' ? 'Non-conformity' : r === 'OBS' ? 'Observation' : 'Not applicable'}>{r}</button>)}
               </div>
@@ -163,7 +164,7 @@ export default function InspectionPage() {
               {v.r === 'NC' && <label>Catatan NC*<textarea value={v.note} onChange={e => set(it.id, { note: e.target.value })} placeholder="Deskripsi kondisi + lokasi patok + bahaya…" rows={2} /></label>}
               <div className="photoline">
                 <label className="btn ghost sm" style={{ margin: 0 }}><Icon name="camera" /> {v.photos.length ? `Tambah foto (${v.photos.length})` : 'Tambah foto'}<input type="file" accept="image/*" capture="environment" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onPhoto(it.id, f); e.target.value = ''; }} /></label>
-                <small className="muted">Kompresi otomatis 300–800KB (§17) · tersimpan + antre Drive</small>
+                <small className="muted">Kompresi otomatis 300–800KB · tersimpan + antre Drive</small>
                 {v.photos.length > 0 && <div className="thumbs">{v.photos.map((p, i) => <a key={i} href={p} target="_blank" rel="noreferrer"><img src={p} alt={`${it.id}-${i}`} /></a>)}</div>}
               </div>
             </div>
@@ -174,7 +175,7 @@ export default function InspectionPage() {
       <div className="card">
         <div className="row"><button className="primary" style={{ flex: 1 }} onClick={submit} disabled={busy}><Icon name="check" /> {busy ? 'Menyimpan…' : `Submit inspeksi (${doneCount} item)`}</button></div>
         {msg && <p role="status" className={msg.startsWith('OK|') ? 'ok' : 'err'}>{msg.replace(/^OK\|/, '')}</p>}
-        <p className="muted">Validasi: NC wajib catatan · NC kritis wajib foto · Critical/STOP wajib immediate action. Submitted tak bisa diedit patrol (§21) — koreksi via amendment/supervisor.</p>
+        <p className="muted">Validasi: NC wajib catatan · NC kritis wajib foto · Critical/Stop wajib immediate action. Submitted tak bisa diedit patrol — koreksi via amendment/supervisor.</p>
       </div>
       <CriticalModal open={showCrit} onConfirm={submit} onCancel={() => setShowCrit(false)} />
     </Protected>

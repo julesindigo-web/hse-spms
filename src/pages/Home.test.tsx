@@ -13,7 +13,7 @@ describe('Home', () => {
     expect(await screen.findByText(/Selamat bertugas/)).not.toBeNull();
     expect(screen.getByText('Inspeksi Patrol Harian')).not.toBeNull();
     expect(screen.queryByText('Dashboard Klasik')).toBeNull();
-    expect(screen.getAllByText(/STOP WORK/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/Stop Work/).length).toBeGreaterThanOrEqual(2);
   });
   it('HSE_ADMIN: kartu audit + statistik terhitung', async () => {
     const me = await loginAs('HSE_ADMIN');

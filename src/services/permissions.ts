@@ -14,7 +14,7 @@ const MATRIX: Record<Action, Role[]> = {
   'finding.assign': ['SUPERVISOR', 'HSE_ADMIN'],
   'finding.verify': ['SUPERVISOR', 'HSE_ADMIN'],
   'finding.close': ['SUPERVISOR', 'HSE_ADMIN'],
-  'finding.close_critical': ['HSE_ADMIN'], // RULE-022 dual sign-off
+  'finding.close_critical': ['HSE_ADMIN'],
   'master.edit': ['HSE_ADMIN'],
   'user.manage': ['HSE_ADMIN'],
   'report.export': ['PATROL', 'SUPERVISOR', 'HSE_ADMIN', 'MANAGEMENT_VIEWER', 'HSE_AUDITOR_OPTIONAL'],
@@ -30,8 +30,8 @@ export function can(role: Role | undefined, action: Action): boolean {
 
 export const ROLE_DESC: Record<Role, string> = {
   PATROL: 'Patroli: buat & submit inspeksi/temuan. Tidak bisa edit master, close/verify, hapus, ubah role, export penuh.',
-  SUPERVISOR: 'Supervisor: review, assign PIC, verify, close non-kritis. Kritis eskalasi ke HSE_ADMIN.',
-  HSE_ADMIN: 'HSE Admin: kelola master, user, Drive, dual sign-off CRITICAL, export penuh, audit.',
+  SUPERVISOR: 'Supervisor: review, assign PIC, verify, close non-kritis. Kritis eskalasi ke HSE Admin.',
+  HSE_ADMIN: 'HSE Admin: kelola master, user, Drive, dual sign-off Critical, export penuh, audit.',
   MANAGEMENT_VIEWER: 'Manajemen: baca dashboard, status area, tren, laporan. Tanpa mutasi.',
   HSE_AUDITOR_OPTIONAL: 'Auditor: baca + verifikasi independen. Tanpa mutasi operasional.'
 };

@@ -13,7 +13,6 @@ export const STRINGS: Record<string, Record<Lang, string>> = {
   master_data: { 'id-ID': 'Data Master', 'zh-CN': '主数据', 'en-US': 'Master Data' },
   reports: { 'id-ID': 'Laporan', 'zh-CN': '报告', 'en-US': 'Reports' },
   admin: { 'id-ID': 'Admin', 'zh-CN': '管理', 'en-US': 'Admin' },
-  radio_reminder: { 'id-ID': 'Sudah menghubungi supervisor via radio? Aplikasi adalah jalur SEKUNDER — radio/verbal langsung adalah jalur UTAMA untuk STOP WORK.', 'zh-CN': '已通过对讲机联系主管了吗？App 仅为次要通道。', 'en-US': 'Have you radioed the supervisor? App is SECONDARY — direct radio/verbal is PRIMARY for STOP WORK.' },
   submit: { 'id-ID': 'Kirim', 'zh-CN': '提交', 'en-US': 'Submit' },
   sync_pending: { 'id-ID': 'Menunggu sinkron', 'zh-CN': '待同步', 'en-US': 'Pending sync' },
   nav_home: { 'id-ID': 'Home', 'zh-CN': '首页', 'en-US': 'Home' },
@@ -27,4 +26,14 @@ export function t(key: string, lang: Lang): string {
   const e = STRINGS[key];
   if (!e) return key;
   return e[lang] ?? e['id-ID'];
+}
+
+const ACRONYMS = new Set(['HSE', 'GPS', 'PIC', 'NC', 'TARP', 'OBS', 'NA', 'ID', 'UID', 'LOTO', 'APD']);
+
+export function humanize(code: string): string {
+  if (!code || /\d/.test(code)) return code;
+  return code.split(/[_\-.]+/).filter(Boolean).map(w => {
+    const u = w.toUpperCase();
+    return ACRONYMS.has(u) ? u : u.charAt(0) + u.slice(1).toLowerCase();
+  }).join(' ');
 }

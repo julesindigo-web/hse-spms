@@ -6,6 +6,8 @@ import { getDriveSettings, saveDriveSettings, testDriveConnection, retryTicket }
 import { Icon } from '../components/icons';
 import { changePassword, sha256 } from '../services/auth';
 import { ROLE_DESC } from '../services/permissions';
+import { humanize } from '../data/i18n';
+import { CHECKLIST_MASTER } from '../data/checklists';
 import { uid } from '../services/store';
 
 export default function Admin() {
@@ -58,25 +60,25 @@ export default function Admin() {
       {msg && <div className="card"><p className="ok">{msg}</p></div>}
 
       <div className="card">
-        <h3><Icon name="users" /> Pengguna dan hak akses ({users.length}) — §2/§3</h3>
+        <h3><Icon name="users" /> Pengguna dan hak akses ({users.length})</h3>
         <div className="tablewrap"><table><thead><tr><th>Nama / Email</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
           {users.map(u => <tr key={u.uid}><td><b>{u.name}</b><br /><small className="muted">{u.email} · {u.employee_id}</small></td>
-            <td><span className="pill">{u.role}</span></td>
+            <td><span className="pill">{humanize(u.role)}</span></td>
             <td>{u.active ? <span className="pill ok">aktif</span> : <span className="pill bad">nonaktif</span>}</td>
             <td><div className="row" style={{ margin: 0 }}>
               <button className="ghost sm" onClick={() => toggleActive(u)}>{u.active ? 'Nonaktifkan' : 'Aktifkan'}</button>
               <button className="ghost sm" onClick={() => resetPw(u)}>Reset PW</button>
-              <button className="ghost sm" onClick={async () => { if (confirm(`Hapus ${u.email}? Hanya bila benar-benar perlu — disarankan nonaktifkan (§3).`)) { await remove('users', u.uid); load(); } }}>Hapus</button>
+              <button className="ghost sm" onClick={async () => { if (confirm(`Hapus ${u.email}? Hanya bila benar-benar perlu — disarankan nonaktifkan.`)) { await remove('users', u.uid); load(); } }}>Hapus</button>
             </div></td></tr>)}
         </tbody></table></div>
-        <details><summary>Matriks hak akses</summary><ul>{Object.entries(ROLE_DESC).map(([r, d]) => <li key={r}><b>{r}</b>: {d}</li>)}</ul></details>
+        <details><summary>Matriks hak akses</summary><ul>{Object.entries(ROLE_DESC).map(([r, d]) => <li key={r}><b>{humanize(r)}</b>: {d}</li>)}</ul></details>
         <details><summary>Tambah pengguna baru</summary>
           <form onSubmit={addUser} className="formgrid" style={{ marginTop: 8 }}>
             <label>Nama<input value={nu.name} onChange={e => setNu({ ...nu, name: e.target.value })} required /></label>
             <label>Email<input type="email" value={nu.email} onChange={e => setNu({ ...nu, email: e.target.value })} required /></label>
             <label>Employee ID<input value={nu.emp} onChange={e => setNu({ ...nu, emp: e.target.value })} required /></label>
             <label>Password awal<input type="password" value={nu.pass} onChange={e => setNu({ ...nu, pass: e.target.value })} required minLength={8} /></label>
-            <label>Role<select value={nu.role} onChange={e => setNu({ ...nu, role: e.target.value })}><option>PATROL</option><option>SUPERVISOR</option><option>HSE_ADMIN</option><option>MANAGEMENT_VIEWER</option><option>HSE_AUDITOR_OPTIONAL</option></select></label>
+            <label>Role<select value={nu.role} onChange={e => setNu({ ...nu, role: e.target.value })}>{['PATROL', 'SUPERVISOR', 'HSE_ADMIN', 'MANAGEMENT_VIEWER', 'HSE_AUDITOR_OPTIONAL'].map(r => <option key={r} value={r}>{humanize(r)}</option>)}</select></label>
             <button className="primary" type="submit">Buat akun</button>
           </form>
         </details>
@@ -91,13 +93,13 @@ export default function Admin() {
         </div>
         <div className="card">
           <h3><Icon name="database" /> Master dan kuota</h3>
-          <p>Hash master: <code>{hash}</code> (316 item, rev produksi). DRAFT lama memakai snapshot versinya (§24).</p>
-          <p className="muted">Kuota Spark: pantau di Firebase Console; threshold 50/75/90% + contingency Blaze (§1/§43). Jangan biarkan kuota menghentikan pencatatan safety-critical (RULE-026).</p>
+          <p>Hash master: <code>{hash}</code> ({CHECKLIST_MASTER.length} item, rev produksi). DRAFT lama memakai snapshot versinya.</p>
+          <p className="muted">Kuota Spark: pantau di Firebase Console; threshold 50/75/90% + contingency Blaze. Jangan biarkan kuota menghentikan pencatatan safety-critical.</p>
         </div>
       </div>
 
       <div className="card">
-        <h3><Icon name="link" /> Koneksi Google Drive (§18/§19) — akun fungsional, bukan personal (RULE-024)</h3>
+          <h3><Icon name="link" /> Koneksi Google Drive — akun fungsional, bukan personal</h3>
         <div className="formgrid">
           <label style={{ gridColumn: '1/-1' }}>Apps Script Web App URL<input value={drv.appsScriptUrl} onChange={e => setDrv({ ...drv, appsScriptUrl: e.target.value })} placeholder="https://script.google.com/macros/s/…/exec" /></label>
           <label>Folder root Drive<input value={drv.driveFolder} onChange={e => setDrv({ ...drv, driveFolder: e.target.value })} /></label>
@@ -107,10 +109,10 @@ export default function Admin() {
           </div>
         </div>
         {conn && <p className="muted">{conn}</p>}
-        <p className="muted">Alur: tiket Firestore (QUEUED, 24 jam, terikat uid) → POST base64 + tiket → Apps Script verifikasi ID Token independen + cek <code>ticket.uid==token.uid</code> + validasi MIME/ukuran/hash → Drive → UPLOADED (§19/§23). Password tak pernah ke Apps Script.</p>
+        <p className="muted">Alur: tiket Firestore (Queued, 24 jam, terikat UID) → POST base64 + tiket → Apps Script verifikasi ID Token independen + cek <code>ticket.uid==token.uid</code> + validasi MIME/ukuran/hash → Drive → Uploaded. Password tak pernah ke Apps Script.</p>
         <h4>Antrean upload ({tickets.length} terbaru)</h4>
         <div className="tablewrap"><table><thead><tr><th>Tiket</th><th>File</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-          {tickets.map(t => <tr key={t.id}><td><small>{t.ticket_id}</small></td><td>{t.filename}</td><td><span className="pill">{t.status}</span></td>
+          {tickets.map(t => <tr key={t.id}><td><small>{t.ticket_id}</small></td><td>{t.filename}</td><td><span className="pill">{humanize(t.status)}</span></td>
             <td>{t.status === 'QUEUED' && <button className="ghost sm" onClick={async () => setConn(await retryTicket(t.ticket_id))}>Retry</button>}</td></tr>)}
           {tickets.length === 0 && <tr><td colSpan={4} className="muted">Antrean kosong — semua foto tersinkron.</td></tr>}
         </tbody></table></div>

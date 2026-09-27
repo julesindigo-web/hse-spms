@@ -64,7 +64,7 @@ describe('Protected', () => {
     await loginAs('PATROL');
     shell(<Protected roles={['HSE_ADMIN']} action="user.manage"><p>x</p></Protected>);
     expect(await screen.findByText('Akses ditolak')).not.toBeNull();
-    expect(screen.getByText(/user\.manage/)).not.toBeNull();
+    expect(screen.getByText(/User Manage/)).not.toBeNull();
   });
   it('blokir aksi + tampilkan izin', async () => {
     await loginAs('PATROL');
@@ -86,7 +86,7 @@ describe('CriticalModal', () => {
     const onCancel = vi.fn();
     const u = userEvent.setup();
     const r = render(<CriticalModal open onConfirm={onConfirm} onCancel={onCancel} />);
-    expect(r.getByText(/STOP WORK/)).not.toBeNull();
+    expect(r.getByText(/Stop Work/)).not.toBeNull();
     await u.click(r.getByText(/Sudah radio/));
     expect(onConfirm).toHaveBeenCalled();
     await u.click(r.getByText(/Batal/));
@@ -95,7 +95,7 @@ describe('CriticalModal', () => {
   it('Escape membatalkan; tombol lain tidak', async () => {
     const onCancel = vi.fn();
     const r = render(<CriticalModal open onConfirm={() => {}} onCancel={onCancel} />);
-    expect(r.getByText(/STOP WORK/)).not.toBeNull();
+    expect(r.getByText(/Stop Work/)).not.toBeNull();
     fireEvent.keyDown(document, { key: 'Enter' });
     expect(onCancel).not.toHaveBeenCalled();
     fireEvent.keyDown(document, { key: 'Escape' });

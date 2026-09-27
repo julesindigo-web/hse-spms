@@ -21,6 +21,6 @@ export async function captureGps(timeoutMs = 12000): Promise<GpsFix> {
 
 export function gpsBadge(g: GpsFix | undefined): string {
   if (!g || (g.lat === 0 && g.lng === 0)) return 'GPS tidak tersedia — diisi manual/di lokasi (catat di deskripsi)';
-  if (g.accuracy_m > 50) return `Akurasi ${g.accuracy_m}m (>50m) — anggap perkiraan, jangan jadi bukti mutlak (§16)`;
+  if (g.accuracy_m > 50) return `Akurasi ${g.accuracy_m}m (>50m) — anggap perkiraan, jangan jadi bukti mutlak`;
   return `±${g.accuracy_m}m`;
 }

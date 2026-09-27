@@ -28,7 +28,7 @@ describe('Master', () => {
     const r = renderWith('/master', <Master />);
     expect(await r.findByText(/Data Master/)).not.toBeNull();
     expect(r.getByText(/316 item/)).not.toBeNull();
-    expect(r.getByText(/STOP WORK triggers/)).not.toBeNull();
+    expect(r.getByText(/Pemicu Stop Work/)).not.toBeNull();
   });
   it('PATROL ditolak', async () => {
     await loginAs('PATROL');

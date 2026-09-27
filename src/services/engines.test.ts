@@ -47,7 +47,7 @@ describe('canCloseFinding', () => {
   });
   it('non-kritis: PATROL ditolak, lainnya OK', () => {
     const f = finding();
-    expect(canCloseFinding(f, 'PATROL')).toEqual({ ok: false, reason: expect.stringContaining('PATROL') });
+    expect(canCloseFinding(f, 'PATROL')).toEqual({ ok: false, reason: expect.stringContaining('Patrol') });
     expect(canCloseFinding(f, 'SUPERVISOR').ok).toBe(true);
     expect(canCloseFinding(f, 'HSE_ADMIN', 'x').ok).toBe(true);
   });

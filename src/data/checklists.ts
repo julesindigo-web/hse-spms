@@ -3,7 +3,7 @@ import type { ChecklistItem, ParamType } from '../types';
 type Row = [id: string, mod: string, idLabel: string, enLabel: string, std: string, param?: ParamType, cc?: string, photo?: boolean, unit?: boolean];
 
 const STD_KEPMEN = 'Kepmen 1827/2018 & Kepdirjen 185/2019 (cek JDIH) + SOP site';
-const STD_GEO = 'Kajian geoteknik site (RULE-007, bukan angka generik)';
+const STD_GEO = 'Kajian geoteknik site (bukan angka generik)';
 const STD_HYDRO = 'Kajian hidrologi site + baku mutu lingkungan';
 const STD_SOP = 'SOP site + SMKP';
 
@@ -196,7 +196,7 @@ const LS: Row[] = [
   ['LS-020', 'MINE_SLOPE', 'Alat berat tidak bekerja di bawah overhang', 'No equipment under overhang', STD_SOP, 'BOOLEAN', 'CC-001'],
   ['LS-021', 'MINE_SLOPE', 'Penerangan malam untuk zona lereng kritis', 'Night lighting at critical slopes', STD_SOP],
   ['LS-022', 'MINE_SLOPE', 'Curah hujan tercatat & dibandingkan trigger TARP', 'Rainfall logged vs TARP trigger', STD_HYDRO],
-  ['LS-023', 'MINE_SLOPE', 'Status TARP geoteknik hari ini diketahui (G/Y/O/R)', 'Today geotech TARP status known', STD_GEO],
+  ['LS-023', 'MINE_SLOPE', 'Status TARP geoteknik hari ini diketahui (Green/Yellow/Orange/Red)', 'Today geotech TARP status known', STD_GEO],
   ['LS-024', 'MINE_SLOPE', 'Pembatasan aktivitas saat TARP Orange/Red dipatuhi', 'TARP Orange/Red restrictions followed', STD_GEO, 'BOOLEAN', 'CC-001'],
   ['LS-025', 'MINE_SLOPE', 'Tidak ada dumping di crest tanpa izin geoteknik', 'No crest dumping without approval', STD_GEO],
   ['LS-026', 'MINE_SLOPE', 'Getaran alat berat dipantau di lereng sensitif', 'Vibration monitored on sensitive slopes', STD_GEO],

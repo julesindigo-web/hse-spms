@@ -50,7 +50,7 @@ describe('Inspection', () => {
   it('ganti modul/shift/tipe/cuaca/area + cari item + empty', async () => {
     const { u, r } = await open();
     await u.selectOptions(r.getByLabelText(/Modul checklist/), 'TRAFFIC_MANAGEMENT');
-    expect(r.getByText(/TRAFFIC_MANAGEMENT — 55 item/)).not.toBeNull();
+    expect(r.getByText(/Traffic Management — 55 item/)).not.toBeNull();
     await u.selectOptions(r.getByLabelText(/Shift/), 'MALAM');
     await u.selectOptions(r.getByLabelText(/Tipe/), 'POST_RAIN');
     await u.selectOptions(r.getByLabelText('Cuaca*'), 'Hujan lebat');
@@ -92,7 +92,7 @@ describe('Inspection', () => {
   it('stop work saja + CC-005: modal radio + immediate wajib', async () => {
     const { u, r } = await open();
     await u.selectOptions(r.getByLabelText(/Modul checklist/), 'TRAFFIC_MANAGEMENT');
-    await u.click(r.getByRole('checkbox', { name: /STOP WORK/ }));
+    await u.click(r.getByRole('checkbox', { name: /Stop Work/ }));
     await ncRow(u, r, 0, 'Berm jebol');
     await uploadPhoto(u, r, 0);
     await u.click(r.getByText(/Submit inspeksi/));

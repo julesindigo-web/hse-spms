@@ -19,12 +19,12 @@ export function areaStatus(args: {
 
 export function canCloseFinding(f: Finding, role: string, secondApproverUid?: string): { ok: boolean; reason: string } {
   if (f.risk_level === 'CRITICAL') {
-    if (role !== 'HSE_ADMIN') return { ok: false, reason: 'CRITICAL hanya bisa ditutup HSE_ADMIN (dual sign-off)' };
-    if (f.closure_approval_level !== 'DUAL_SIGN_OFF') return { ok: false, reason: 'CRITICAL wajib DUAL_SIGN_OFF' };
+    if (role !== 'HSE_ADMIN') return { ok: false, reason: 'Critical hanya bisa ditutup HSE Admin (dual sign-off)' };
+    if (f.closure_approval_level !== 'DUAL_SIGN_OFF') return { ok: false, reason: 'Critical wajib Dual Sign Off' };
     if (!secondApproverUid) return { ok: false, reason: 'Second approver wajib diisi dan berbeda dari penetap verifikasi' };
     return { ok: true, reason: 'OK dual sign-off' };
   }
-  if (role === 'PATROL') return { ok: false, reason: 'PATROL tidak bisa close (RULE-003)' };
+  if (role === 'PATROL') return { ok: false, reason: 'Patrol tidak bisa close.' };
   return { ok: true, reason: 'OK' };
 }
 

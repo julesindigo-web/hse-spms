@@ -61,7 +61,7 @@ describe('Activity', () => {
     const u = userEvent.setup();
     const r = renderWith('/activity', <Activity />);
     expect(await r.findByText('Daily Activity Report')).not.toBeNull();
-    expect(r.getByText('HAUL_ROAD')).not.toBeNull();
+    expect(r.getByText('Haul Road')).not.toBeNull();
     await u.selectOptions(r.getByLabelText('Shift'), 'PAGI');
     await u.selectOptions(r.getByLabelText('Area'), 'SLOPE');
     await u.selectOptions(r.getByLabelText('Area'), 'SEMUA');

@@ -35,7 +35,7 @@ export interface CriticalControl {
 
 export interface TarpRule {
   id: string; name: I18nText; green: string; yellow: string; orange: string; red: string;
-  source: string; // site-specific kajian — dilarang angka generik final (§13)
+  source: string;
 }
 
 export interface ParameterStandard {
@@ -44,7 +44,7 @@ export interface ParameterStandard {
 
 export interface InspectionResponse {
   checklist_id: string; result: ResultStatus;
-  actual_value?: string; equipment_unit_id?: string; // §10 equipment linkage
+  actual_value?: string; equipment_unit_id?: string;
   photo_ids: string[]; note?: string;
   standard_snapshot: string; revision_snapshot: string;
 }
@@ -66,7 +66,7 @@ export interface Finding {
   severity: number; likelihood: number; risk_score: number; risk_level: RiskLevel;
   state: FindingState; pic_uid?: string; pic_name?: string; due_date?: string;
   evidence_ids: string[]; gps?: { lat: number; lng: number };
-  closure_approval_level: ClosureApproval; // §20 baru
+  closure_approval_level: ClosureApproval;
   second_approver_uid?: string; second_approver_at?: string;
   repeat_of?: string; created_by: string; created_at: string; updated_at: string;
   reject_reason?: string;

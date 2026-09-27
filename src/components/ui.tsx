@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { can, type Action } from '../services/permissions';
-import { t } from '../data/i18n';
+import { t, humanize } from '../data/i18n';
 import { Icon, BrandMark } from './icons';
 
 export const DESIGNER = 'Priastama Adiyoga';
@@ -45,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <img src="/brand/pa-logo-768.png" alt="Priastama Adiyoga — Product Design" loading="lazy" />
         </div>
         <p className="foot-brand">Product Design</p>
-        <small>HSE Safety Patrol v2.0 · Offline-first · Radio/verbal adalah jalur utama STOP WORK (RULE-021) · Aplikasi sebagai dokumentasi dan backup</small>
+        <small>HSE Safety Patrol v2.0 · Offline-first · Radio/verbal adalah jalur utama Stop Work · Aplikasi sebagai dokumentasi dan backup</small>
       </footer>
     </div>
   );
@@ -54,8 +54,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export function Protected({ children, roles, action }: { children: React.ReactNode; roles?: string[]; action?: Action }) {
   const { user } = useApp();
   if (!user) return <div className="card center"><span className="big-ic"><Icon name="lock" size={30} /></span><h3>Akses memerlukan login</h3><p>Silakan <Link to="/login">masuk dengan akun dinas</Link> untuk memakai aplikasi produksi ini.</p></div>;
-  if (roles && !roles.includes(user.role)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Akses ditolak</h3><p>Role <b>{user.role}</b> tidak diizinkan untuk halaman ini.{action ? ` Izin yang dibutuhkan: ${action}.` : ''} (RBAC §2)</p></div>;
-  if (action && !can(user.role, action)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Izin tidak cukup</h3><p>Aksi <b>{action}</b> memerlukan role lebih tinggi. (Enforcement lapis UI dan data §22)</p></div>;
+  if (roles && !roles.includes(user.role)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Akses ditolak</h3><p>Role <b>{humanize(user.role)}</b> tidak diizinkan untuk halaman ini.{action ? ` Izin yang dibutuhkan: ${humanize(action)}.` : ''}</p></div>;
+  if (action && !can(user.role, action)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Izin tidak cukup</h3><p>Aksi <b>{humanize(action)}</b> memerlukan role lebih tinggi.</p></div>;
   return <>{children}</>;
 }
 
@@ -70,9 +70,9 @@ export function CriticalModal({ open, onConfirm, onCancel }: { open: boolean; on
   return (
     <div className="modalback" role="dialog" aria-modal="true" aria-label="Konfirmasi kondisi kritis">
       <div className="modal modal-crit">
-        <p className="modal-kicker"><Icon name="radio" /> STOP WORK — KONDISI KRITIS</p>
+        <p className="modal-kicker"><Icon name="radio" /> Stop Work — Kondisi Kritis</p>
         <h2>Sudah menghubungi supervisor via radio?</h2>
-        <p className="warn">Aplikasi adalah jalur <b>sekunder</b> — radio/verbal langsung adalah jalur <b>utama</b> untuk keselamatan jiwa (§15 RULE-021). Notifikasi digital tertunda saat perangkat offline.</p>
+        <p className="warn">Aplikasi adalah jalur <b>sekunder</b> — radio/verbal langsung adalah jalur <b>utama</b> untuk keselamatan jiwa. Notifikasi digital tertunda saat perangkat offline.</p>
         <ol className="steps">
           <li>Hentikan aktivitas berbahaya dan amankan personel (radio terlebih dahulu).</li>
           <li>Lengkapi immediate action, foto, GPS, dan deskripsi.</li>

@@ -79,7 +79,7 @@ export async function loginLocal(email: string, pass: string): Promise<{ user?: 
   const users = (await list('users')) as LocalAccount[];
   const found = users.find(u => (u.email || '').toLowerCase() === email.trim().toLowerCase());
   if (!found) return { error: 'Email tidak terdaftar. Hubungi HSE_ADMIN.' };
-  if (!found.active) return { error: 'Akun nonaktif (active=false). Hubungi HSE_ADMIN (§3).' };
+  if (!found.active) return { error: 'Akun nonaktif. Hubungi HSE Admin.' };
   const h = await sha256(pass);
   if (h !== (found as any).pass_hash) return { error: 'Kata sandi salah.' };
   const { pass_hash: _p, ...safe } = found as any;

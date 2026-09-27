@@ -39,17 +39,17 @@ describe('Findings', () => {
     await u.click(r.getAllByText('Assign PIC')[0]);
     await waitFor(async () => expect(await stateOf('Akan Datang')).toBe('ASSIGNED'), { timeout: 8000 });
     await u.click(r.getAllByText('Assign PIC')[0]);
-    await u.click(screen.getByRole('button', { name: 'OVERDUE' }));
+    await u.click(screen.getByRole('button', { name: 'Overdue' }));
     await u.click(r.getAllByText('Progress')[0]);
     await waitFor(async () => expect(await stateOf('Lewat Tempo')).toBe('IN_PROGRESS'), { timeout: 8000 });
     await u.click(r.getAllByText('Verify')[0]);
     await waitFor(async () => expect(await stateOf('Lewat Tempo')).toBe('VERIFIED'), { timeout: 8000 });
-    await u.click(screen.getByRole('button', { name: 'OVERDUE' }));
-    await u.click(screen.getByRole('button', { name: 'ALL' }));
+    await u.click(screen.getByRole('button', { name: 'Overdue' }));
+    await u.click(screen.getByRole('button', { name: 'All' }));
     await u.click(r.getAllByText('Close')[0]);
     await waitFor(async () => expect(await stateOf('Akan Datang')).toBe('CLOSED'), { timeout: 8000 });
-    await u.click(screen.getByRole('button', { name: 'CRITICAL' }));
-    await u.click(screen.getByRole('button', { name: 'ALL' }));
+    await u.click(screen.getByRole('button', { name: 'Critical' }));
+    await u.click(screen.getByRole('button', { name: 'All' }));
   });
   it('PATROL ditolak verify/close; CRITICAL dual sign-off HSE_ADMIN', async () => {
     await loginAs('PATROL');
@@ -89,7 +89,7 @@ describe('Findings', () => {
     const r = renderWith('/findings', <Findings />);
     await r.findByText('Manajemen Temuan');
     await u.click(r.getAllByText('Assign PIC')[0]);
-    expect(window.alert).toHaveBeenCalledWith('Hanya SUPERVISOR/HSE_ADMIN yang bisa assign PIC.');
+    expect(window.alert).toHaveBeenCalledWith('Hanya Supervisor/HSE Admin yang bisa assign PIC.');
   });
   it('HSE_ADMIN: tutup CRITICAL dengan second approver; reject + reopen', async () => {
     await loginAs('HSE_ADMIN');
@@ -101,7 +101,7 @@ describe('Findings', () => {
     window.alert = vi.fn();
     await u.click(r.getByText('Close + dual sign-off'));
     expect(window.alert).toHaveBeenCalled();
-    await u.type(r.getByPlaceholderText(/second_approver/), 'spv@sifang.co.id');
+    await u.type(r.getByPlaceholderText(/Second approver/), 'spv@sifang.co.id');
     await u.click(r.getByText('Close + dual sign-off'));
     async function stateOf(title: string): Promise<string> {
       const items = (await list('findings')) as { title: string; state: string }[];

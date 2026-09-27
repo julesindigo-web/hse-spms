@@ -5,6 +5,8 @@ import { useApp } from '../contexts/AppContext';
 import { Protected } from '../components/ui';
 import { Icon } from '../components/icons';
 import { can } from '../services/permissions';
+import { humanize } from '../data/i18n';
+import { CHECKLIST_MASTER } from '../data/checklists';
 
 export default function Home() {
   const { user } = useApp();
@@ -27,11 +29,11 @@ export default function Home() {
       <section className="hero" aria-label="Ringkasan operasional">
         <p className="kicker">Ringkasan operasional — {todayId}</p>
         <h2>Selamat bertugas, {user?.name}</h2>
-        <p className="sub">{user?.role} · {user?.employee_id} · Hari ini tercatat <b>{s.today} inspeksi</b>. Radio/verbal langsung tetap jalur utama STOP WORK.</p>
+        <p className="sub">{humanize(user?.role ?? '')} · {user?.employee_id} · Hari ini tercatat <b>{s.today} inspeksi</b>. Radio/verbal langsung tetap jalur utama Stop Work.</p>
         <div className="hero-stats">
           <div><b>{s.insp}</b><span>Total inspeksi</span></div>
           <div><b>{s.open}</b><span>Temuan terbuka</span></div>
-          <div className={s.crit ? 'hs-bad' : ''}><b>{s.crit}</b><span>CRITICAL terbuka</span></div>
+          <div className={s.crit ? 'hs-bad' : ''}><b>{s.crit}</b><span>Critical terbuka</span></div>
           <div><b>{s.pending}</b><span>Foto antre Drive</span></div>
         </div>
         <div className="cta-row">
@@ -41,16 +43,16 @@ export default function Home() {
         </div>
       </section>
       <div className="grid2">
-        <Link className="card link" to="/inspect"><h3><Icon name="clipboard" /> Inspeksi Patrol Harian</h3><p>Mulai patrol: area, GPS, 316 checklist C/NC/OBS/NA dengan foto per item, critical control, dan STOP WORK.</p></Link>
+        <Link className="card link" to="/inspect"><h3><Icon name="clipboard" /> Inspeksi Patrol Harian</h3><p>Mulai patrol: area, GPS, {CHECKLIST_MASTER.length} checklist C/NC/OBS/NA dengan foto per item, critical control, dan Stop Work.</p></Link>
         <Link className="card link" to="/activity"><h3><Icon name="calendar" /> Daily Activity Report</h3><p>Laporan aktivitas harian per tanggal, shift, dan area — lengkap dengan foto, export CSV, dan cetak PDF.</p></Link>
         <Link className="card link" to="/monitoring"><h3><Icon name="radar" /> Monitoring Safety Patrol</h3><p>Status area live, tren 7 hari, produktivitas patrol, serta daftar overdue.</p></Link>
-        <Link className="card link" to="/findings"><h3><Icon name="alert" /> Temuan dan PIC</h3><p>Assign PIC, due date, corrective action, verifikasi, dan dual sign-off CRITICAL.</p></Link>
+        <Link className="card link" to="/findings"><h3><Icon name="alert" /> Temuan dan PIC</h3><p>Assign PIC, due date, corrective action, verifikasi, dan dual sign-off Critical.</p></Link>
       </div>
       {user && can(user.role, 'audit.read') && <div className="grid2" style={{ marginTop: 14 }}>
         <Link className="card link" to="/dashboard"><h3><Icon name="report" /> Dashboard Klasik</h3><p>Compliance, critical/high/open/overdue, dan tren closure.</p></Link>
         <Link className="card link" to="/reports"><h3><Icon name="report" /> Laporan dan Audit</h3><p>Finding register, inspection summary, dan audit trail.</p></Link>
       </div>}
-      <div className="card warnbox"><strong><Icon name="radio" /> STOP WORK — radio terlebih dahulu, aplikasi kemudian.</strong><p className="muted" style={{ margin: '6px 0 0' }}>Komunikasi radio/verbal langsung ke supervisor/KTT adalah jalur utama. Aplikasi (foto, GPS, deskripsi, email) berfungsi sebagai dokumentasi, tindak lanjut, dan audit trail (§15 RULE-021). Dialog CRITICAL selalu mengingatkan sebelum submit.</p></div>
+      <div className="card warnbox"><strong><Icon name="radio" /> Stop Work — radio terlebih dahulu, aplikasi kemudian.</strong><p className="muted" style={{ margin: '6px 0 0' }}>Komunikasi radio/verbal langsung ke supervisor/KTT adalah jalur utama. Aplikasi (foto, GPS, deskripsi, email) berfungsi sebagai dokumentasi, tindak lanjut, dan audit trail. Dialog Critical selalu mengingatkan sebelum submit.</p></div>
     </Protected>
   );
 }
