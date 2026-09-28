@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Routes, Route } from 'react-router-dom';
 import Login from './Login';
 import Home from './Home';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, renderWith } from '../test/render';
 
 beforeEach(async () => { await clearAll(); });
@@ -23,6 +25,15 @@ describe('Login', () => {
     await u.type(r.getByLabelText('Kata sandi'), '12345');
     await u.click(r.getByText('Masuk ke Patrol'));
     expect(await screen.findByText(/Selamat bertugas/)).not.toBeNull();
+  });
+  it('EN: chrome login terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    const r = renderWith('/login', <><Probe /><Login /></>);
+    expect(await r.findByText('Masuk ke Patrol')).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Sign in to Patrol')).not.toBeNull();
+    expect(await r.findByText('Work email')).not.toBeNull();
   });
   it('busy state + daftar akun terlihat', async () => {
     renderWith('/login', <Login />);

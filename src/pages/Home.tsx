@@ -5,11 +5,11 @@ import { useApp } from '../contexts/AppContext';
 import { Protected } from '../components/ui';
 import { Icon } from '../components/icons';
 import { can } from '../services/permissions';
-import { humanize } from '../data/i18n';
+import { humanize, t } from '../data/i18n';
 import { CHECKLIST_MASTER } from '../data/checklists';
 
 export default function Home() {
-  const { user } = useApp();
+  const { user, lang } = useApp();
   const [s, setS] = useState({ insp: 0, open: 0, crit: 0, pending: 0, today: 0 });
   useEffect(() => {
     (async () => {
@@ -26,33 +26,33 @@ export default function Home() {
   const todayId = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <Protected>
-      <section className="hero" aria-label="Ringkasan operasional">
-        <p className="kicker">Ringkasan operasional — {todayId}</p>
-        <h2>Selamat bertugas, {user?.name}</h2>
-        <p className="sub">{humanize(user?.role ?? '')} · {user?.employee_id} · Hari ini tercatat <b>{s.today} inspeksi</b>. Radio/verbal langsung tetap jalur utama Stop Work.</p>
+      <section className="hero" aria-label={t('home_kicker', lang, { date: todayId })}>
+        <p className="kicker">{t('home_kicker', lang, { date: todayId })}</p>
+        <h2>{t('home_hello', lang, { name: user?.name ?? '' })}</h2>
+        <p className="sub">{t('home_sub', lang, { role: humanize(user?.role ?? ''), emp: user?.employee_id ?? '', today: t('home_today', lang, { n: s.today }) })}</p>
         <div className="hero-stats">
-          <div><b>{s.insp}</b><span>Total inspeksi</span></div>
-          <div><b>{s.open}</b><span>Temuan terbuka</span></div>
-          <div className={s.crit ? 'hs-bad' : ''}><b>{s.crit}</b><span>Critical terbuka</span></div>
-          <div><b>{s.pending}</b><span>Foto antre Drive</span></div>
+          <div><b>{s.insp}</b><span>{t('home_total', lang)}</span></div>
+          <div><b>{s.open}</b><span>{t('monitor_open', lang)}</span></div>
+          <div className={s.crit ? 'hs-bad' : ''}><b>{s.crit}</b><span>{t('monitor_critical', lang)}</span></div>
+          <div><b>{s.pending}</b><span>{t('home_pending', lang)}</span></div>
         </div>
         <div className="cta-row">
-          <Link className="btn light" to="/inspect"><Icon name="clipboard" /> Mulai inspeksi</Link>
-          <Link className="btn glass" to="/activity"><Icon name="calendar" /> Laporan harian</Link>
-          <Link className="btn glass" to="/monitoring"><Icon name="radar" /> Monitoring</Link>
+          <Link className="btn light" to="/inspect"><Icon name="clipboard" /> {t('home_cta_inspect', lang)}</Link>
+          <Link className="btn glass" to="/activity"><Icon name="calendar" /> {t('home_cta_daily', lang)}</Link>
+          <Link className="btn glass" to="/monitoring"><Icon name="radar" /> {t('home_cta_monitor', lang)}</Link>
         </div>
       </section>
       <div className="grid2">
-        <Link className="card link" to="/inspect"><h3><Icon name="clipboard" /> Inspeksi Patrol Harian</h3><p>Mulai patrol: area, GPS, {CHECKLIST_MASTER.length} checklist C/NC/OBS/NA dengan foto per item, critical control, dan Stop Work.</p></Link>
-        <Link className="card link" to="/activity"><h3><Icon name="calendar" /> Daily Activity Report</h3><p>Laporan aktivitas harian per tanggal, shift, dan area — lengkap dengan foto, export CSV, dan cetak PDF.</p></Link>
-        <Link className="card link" to="/monitoring"><h3><Icon name="radar" /> Monitoring Safety Patrol</h3><p>Status area live, tren 7 hari, produktivitas patrol, serta daftar overdue.</p></Link>
-        <Link className="card link" to="/findings"><h3><Icon name="alert" /> Temuan dan PIC</h3><p>Assign PIC, due date, corrective action, verifikasi, dan dual sign-off Critical.</p></Link>
+        <Link className="card link" to="/inspect"><h3><Icon name="clipboard" /> {t('home_card_inspect_t', lang)}</h3><p>{t('home_card_inspect_p', lang, { n: CHECKLIST_MASTER.length })}</p></Link>
+        <Link className="card link" to="/activity"><h3><Icon name="calendar" /> {t('home_card_daily_t', lang)}</h3><p>{t('home_card_daily_p', lang)}</p></Link>
+        <Link className="card link" to="/monitoring"><h3><Icon name="radar" /> {t('monitor_title', lang)}</h3><p>{t('home_card_monitor_p', lang)}</p></Link>
+        <Link className="card link" to="/findings"><h3><Icon name="alert" /> {t('home_card_finding_t', lang)}</h3><p>{t('home_card_finding_p', lang)}</p></Link>
       </div>
       {user && can(user.role, 'audit.read') && <div className="grid2" style={{ marginTop: 14 }}>
-        <Link className="card link" to="/dashboard"><h3><Icon name="report" /> Dashboard Klasik</h3><p>Compliance, critical/high/open/overdue, dan tren closure.</p></Link>
-        <Link className="card link" to="/reports"><h3><Icon name="report" /> Laporan dan Audit</h3><p>Finding register, inspection summary, dan audit trail.</p></Link>
+        <Link className="card link" to="/dashboard"><h3><Icon name="report" /> {t('home_card_dash_t', lang)}</h3><p>{t('home_card_dash_p', lang)}</p></Link>
+        <Link className="card link" to="/reports"><h3><Icon name="report" /> {t('home_card_report_t', lang)}</h3><p>{t('home_card_report_p', lang)}</p></Link>
       </div>}
-      <div className="card warnbox"><strong><Icon name="radio" /> Stop Work — radio terlebih dahulu, aplikasi kemudian.</strong><p className="muted" style={{ margin: '6px 0 0' }}>Komunikasi radio/verbal langsung ke supervisor/KTT adalah jalur utama. Aplikasi (foto, GPS, deskripsi, email) berfungsi sebagai dokumentasi, tindak lanjut, dan audit trail. Dialog Critical selalu mengingatkan sebelum submit.</p></div>
+      <div className="card warnbox"><strong><Icon name="radio" /> {t('home_warn_t', lang)}</strong><p className="muted" style={{ margin: '6px 0 0' }}>{t('home_warn_p', lang)}</p></div>
     </Protected>
   );
 }

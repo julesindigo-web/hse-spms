@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { act } from '@testing-library/react';
 import Dashboard from './Dashboard';
 import Master from './Master';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { put, uid } from '../services/store';
 
@@ -23,6 +26,16 @@ describe('Dashboard', () => {
 });
 
 describe('Master', () => {
+  it('EN: chrome master terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('SUPERVISOR');
+    const r = renderWith('/master', <><Probe /><Master /></>);
+    expect(await r.findByText(/Data Master/)).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Master Data')).not.toBeNull();
+    expect(await r.findByText(/Stop Work triggers \(11\)/)).not.toBeNull();
+  });
   it('SUPERVISOR melihat katalog + TARP + trigger', async () => {
     await loginAs('SUPERVISOR');
     const r = renderWith('/master', <Master />);

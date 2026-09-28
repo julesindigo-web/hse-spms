@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Findings from './Findings';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { put, uid, list } from '../services/store';
 
@@ -24,12 +26,21 @@ async function seed() {
 }
 
 describe('Findings', () => {
+  it('EN: chrome temuan terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('SUPERVISOR');
+    await seed();
+    const r = renderWith('/findings', <><Probe /><Findings /></>);
+    expect(await r.findByText('Manajemen Temuan')).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Finding Management')).not.toBeNull();
+    expect((await r.findAllByText('Request verification')).length).toBeGreaterThan(0);
+  });
   it('SUPERVISOR: filter + assign + progress + verify + close', async () => {
     await loginAs('SUPERVISOR');
     await seed();
     const u = userEvent.setup();
-    window.alert = vi.fn();
-    vi.stubGlobal('prompt', vi.fn((msg: string) => (msg.includes('Due') ? '2026-12-31' : 'Budi')));
     const r = renderWith('/findings', <Findings />);
     expect(await r.findByText('Manajemen Temuan')).not.toBeNull();
     async function stateOf(title: string): Promise<string> {
@@ -37,8 +48,13 @@ describe('Findings', () => {
       return items.find(f => f.title === title)?.state ?? 'HILANG';
     }
     await u.click(r.getAllByText('Assign PIC')[0]);
+    await u.type(await r.findByPlaceholderText('Nama PIC'), 'Budi');
+    await u.click(r.getByText('Kirim'));
+    const dueInput = await r.findByPlaceholderText('YYYY-MM-DD');
+    await u.clear(dueInput);
+    await u.type(dueInput, '2026-12-31');
+    await u.click(r.getByText('Kirim'));
     await waitFor(async () => expect(await stateOf('Akan Datang')).toBe('ASSIGNED'), { timeout: 8000 });
-    await u.click(r.getAllByText('Assign PIC')[0]);
     await u.click(screen.getByRole('button', { name: 'Overdue' }));
     await u.click(r.getAllByText('Progress')[0]);
     await waitFor(async () => expect(await stateOf('Lewat Tempo')).toBe('IN_PROGRESS'), { timeout: 8000 });
@@ -57,50 +73,57 @@ describe('Findings', () => {
     const u = userEvent.setup();
     const r = renderWith('/findings', <Findings />);
     await r.findByText('Manajemen Temuan');
-    window.alert = vi.fn();
     await u.click(r.getAllByText('Verify')[0]);
-    expect(window.alert).toHaveBeenCalled();
+    expect(await r.findByText('Hanya Supervisor/HSE Admin yang bisa verify.')).not.toBeNull();
+    await u.click(r.getByText('OK'));
     await u.click(r.getAllByText('Close')[0]);
-    expect(window.alert).toHaveBeenCalledTimes(2);
+    expect(await r.findByText('Patrol tidak bisa verify/close.')).not.toBeNull();
   });
-  it('PATROL assign ditolak; prompt batal dan due kosong', async () => {
+  it('assign via dialog: batal, due kosong, reject kosong', async () => {
     await loginAs('HSE_ADMIN');
     await seed();
     const u = userEvent.setup();
-    window.alert = vi.fn();
     const r = renderWith('/findings', <Findings />);
     await r.findByText('Manajemen Temuan');
-    vi.stubGlobal('prompt', vi.fn().mockImplementationOnce(() => null));
     await u.click(r.getAllByText('Assign PIC')[0]);
-    vi.stubGlobal('prompt', vi.fn((msg: string) => (msg.includes('Due') ? '' : 'Budi')));
+    await u.click(r.getByText('Batal'));
+    expect(((await list('findings')) as { title: string; state: string }[]).find(f => f.title === 'Akan Datang')?.state).toBe('OPEN');
     await u.click(r.getAllByText('Assign PIC')[0]);
+    await u.type(await r.findByPlaceholderText('Nama PIC'), 'Budi');
+    await u.click(r.getByText('Kirim'));
+    const dueInput = await r.findByPlaceholderText('YYYY-MM-DD');
+    await u.clear(dueInput);
+    await u.click(r.getByText('Kirim'));
     expect((await list('findings')).some((f: { state: string; pic_name?: string; due_date?: string }) => f.state === 'ASSIGNED' && f.pic_name === 'Budi' && f.due_date === undefined)).toBe(true);
     await u.click(r.getAllByText('Assign PIC')[3]);
+    await u.type(await r.findByPlaceholderText('Nama PIC'), 'Budi');
+    await u.click(r.getByText('Kirim'));
+    const dueInput2 = await r.findByPlaceholderText('YYYY-MM-DD');
+    await u.clear(dueInput2);
+    await u.click(r.getByText('Kirim'));
     expect((await list('findings')).some((f: { title: string; pic_name?: string }) => f.title === 'Temuan Rutin' && f.pic_name === 'Budi')).toBe(true);
-    vi.stubGlobal('prompt', vi.fn(() => ''));
     await u.click(r.getAllByText('Reject')[0]);
+    await u.click(r.getByText('Kirim'));
     expect((await list('findings')).every((f: { state: string }) => f.state !== 'REJECTED')).toBe(true);
   });
   it('PATROL assign ditolak karena izin', async () => {
     await loginAs('PATROL');
     await seed();
     const u = userEvent.setup();
-    window.alert = vi.fn();
     const r = renderWith('/findings', <Findings />);
     await r.findByText('Manajemen Temuan');
     await u.click(r.getAllByText('Assign PIC')[0]);
-    expect(window.alert).toHaveBeenCalledWith('Hanya Supervisor/HSE Admin yang bisa assign PIC.');
+    expect(await r.findByText('Hanya Supervisor/HSE Admin yang bisa assign PIC.')).not.toBeNull();
   });
   it('HSE_ADMIN: tutup CRITICAL dengan second approver; reject + reopen', async () => {
     await loginAs('HSE_ADMIN');
     await seed();
     const u = userEvent.setup();
-    vi.stubGlobal('prompt', vi.fn(() => 'duplikat'));
     const r = renderWith('/findings', <Findings />);
     await r.findByText('Manajemen Temuan');
-    window.alert = vi.fn();
     await u.click(r.getByText('Close + dual sign-off'));
-    expect(window.alert).toHaveBeenCalled();
+    expect(await r.findByText(/Ditolak: /)).not.toBeNull();
+    await u.click(r.getByText('OK'));
     await u.type(r.getByPlaceholderText(/Second approver/), 'spv@sifang.co.id');
     await u.click(r.getByText('Close + dual sign-off'));
     async function stateOf(title: string): Promise<string> {
@@ -109,6 +132,8 @@ describe('Findings', () => {
     }
     await waitFor(async () => expect(await stateOf('Kritis Jalan')).toBe('CLOSED'), { timeout: 8000 });
     await u.click(r.getAllByText('Reject')[0]);
+    await u.type(await r.findByPlaceholderText('invalid/duplikat…'), 'duplikat');
+    await u.click(r.getByText('Kirim'));
     await waitFor(async () => expect(await stateOf('Akan Datang')).toBe('REJECTED'), { timeout: 8000 });
     await u.click(r.getAllByText('Reopen')[0]);
     await waitFor(async () => expect(await stateOf('Lewat Tempo')).toBe('REOPENED'), { timeout: 8000 });

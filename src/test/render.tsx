@@ -18,7 +18,7 @@ export async function loginAs(role: Role): Promise<Record<string, unknown>> {
 export function renderWith(route: string, ui: ReactNode) {
   return render(
     <AppProvider>
-      <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+      <MemoryRouter initialEntries={[route]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{ui}</MemoryRouter>
     </AppProvider>
   );
 }

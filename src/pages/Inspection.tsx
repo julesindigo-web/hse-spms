@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CHECKLIST_MASTER, MODULES, MASTER_REVISION } from '../data/checklists';
 import { AREAS, CRITICAL_CONTROLS, STOP_WORK_TRIGGERS } from '../data/master';
-import { humanize } from '../data/i18n';
+import { humanize, t } from '../data/i18n';
 import { useApp } from '../contexts/AppContext';
 import { Protected, CriticalModal, Empty } from '../components/ui';
 import { put, uid, audit, list } from '../services/store';
@@ -14,7 +14,7 @@ import type { InspectionResponse, InspectionType, ResultStatus } from '../types'
 interface RowVal { r: ResultStatus; note: string; actual: string; unit: string; photos: string[] }
 
 export default function InspectionPage() {
-  const { user } = useApp();
+  const { user, lang } = useApp();
   const [area, setArea] = useState('HAUL_ROAD');
   const [sub, setSub] = useState('');
   const [shift, setShift] = useState<'PAGI' | 'SIANG' | 'MALAM'>('PAGI');
@@ -61,16 +61,16 @@ export default function InspectionPage() {
       const rec = atts.find((a: any) => a.id === attId);
       const url = rec ? rec.dataUrl : c.dataUrl;
       set(id, { photos: [...photosOf(id), url] });
-      setMsg(`Foto ${id} tersimpan (${c.size_kb}KB, ${c.width}×${c.height}) → antrean Drive.`);
-    } catch (e: any) { setMsg(`Gagal foto: ${e?.message ?? e}`); }
+      setMsg(t('inspect_photo_saved', lang, { id, size: c.size_kb, w: c.width, h: c.height }));
+    } catch (e: any) { setMsg(t('inspect_photo_fail', lang, { e: e?.message ?? e })); }
   }
 
   function validate(): string | null {
     const ncNoNote = CHECKLIST_MASTER.filter(c => results[c.id]?.r === 'NC' && !results[c.id]?.note.trim());
-    if (ncNoNote.length > 0) return `${ncNoNote.length} item NC belum ada catatan/actual value (${ncNoNote.slice(0, 3).map(c => c.id).join(', ')}…).`;
+    if (ncNoNote.length > 0) return t('inspect_val_note', lang, { n: ncNoNote.length, ids: ncNoNote.slice(0, 3).map(c => c.id).join(', ') });
     const ncNoPhoto = CHECKLIST_MASTER.filter(c => c.is_critical_linked && results[c.id]?.r === 'NC' && photosOf(c.id).length === 0);
-    if (ncNoPhoto.length > 0) return `${ncNoPhoto.length} item kritis NC wajib foto (${ncNoPhoto.slice(0, 3).map(c => c.id).join(', ')}…).`;
-    if ((failedCC.length > 0 || stopWork) && !immediate.trim()) return 'Critical/Stop Work wajib isi Immediate action.';
+    if (ncNoPhoto.length > 0) return t('inspect_val_photo', lang, { n: ncNoPhoto.length, ids: ncNoPhoto.slice(0, 3).map(c => c.id).join(', ') });
+    if ((failedCC.length > 0 || stopWork) && !immediate.trim()) return t('inspect_val_immediate', lang);
     return null;
   }
 
@@ -113,7 +113,7 @@ export default function InspectionPage() {
         } as any);
       }
       await audit(user!.uid, user!.role, 'SUBMIT_INSPECTION', 'inspections', insp.id, `${responses.length} respons, stop=${stopWork}, gps±${g.accuracy_m}m`);
-      setMsg(`OK|Inspeksi ${insp.id} tersimpan — ${responses.length} item, ${ncCount} NC. Lihat di Harian dan Monitoring.`);
+      setMsg(`OK|${t('inspect_saved', lang, { id: insp.id, n: responses.length, nc: ncCount })}`);
       setResults({}); setFailedCC([]); setStopWork(false); setImmediate('');
     } finally { setBusy(false); setShowCrit(false); }
   }
@@ -122,31 +122,31 @@ export default function InspectionPage() {
 
   return (
     <Protected action="inspect.create">
-      <div className="pagehead"><div><p className="kicker">Pencatatan lapangan — offline-first</p><h2><Icon name="clipboard" /> Inspeksi Patrol Harian</h2><p className="muted">Rev {MASTER_REVISION} · {CHECKLIST_MASTER.length} item · {doneCount} diisi · {ncCount} NC · GPS: {gpsBadge(gps)}</p></div>
-        <button className="ghost" onClick={() => captureGps().then(g => { setGps(g); setMsg('GPS diperbarui: ' + gpsBadge(g)); })}><Icon name="pin" /> Refresh GPS</button></div>
+      <div className="pagehead"><div><p className="kicker">{t('inspect_kicker', lang)}</p><h2><Icon name="clipboard" /> {t('inspect_title', lang)}</h2><p className="muted">{t('inspect_sub', lang, { rev: MASTER_REVISION, total: CHECKLIST_MASTER.length, done: doneCount, nc: ncCount, gps: gpsBadge(gps) })}</p></div>
+        <button className="ghost" onClick={() => captureGps().then(g => { setGps(g); setMsg(t('inspect_gps_updated', lang, { g: gpsBadge(g) })); })}><Icon name="pin" /> {t('inspect_refresh_gps', lang)}</button></div>
 
       <div className="card formgrid">
-        <label>Area*<select value={area} onChange={e => { setArea(e.target.value); setSub(''); }}>{AREAS.map(a => <option key={a.id} value={a.id}>{a.name['id-ID']}</option>)}</select></label>
-        <label>Sub-area<select value={sub} onChange={e => setSub(e.target.value)}><option value="">—</option>{areaSubs.map(s => <option key={s.id} value={s.id}>{s.name['id-ID']}</option>)}</select></label>
-        <label>Shift*<select value={shift} onChange={e => setShift(e.target.value as any)}>{['PAGI', 'SIANG', 'MALAM'].map(s => <option key={s} value={s}>{humanize(s)}</option>)}</select></label>
-        <label>Tipe*<select value={type} onChange={e => setType(e.target.value as InspectionType)}>{(['DAILY_PATROL', 'POST_RAIN', 'FOLLOW_UP', 'SPECIAL_INSPECTION', 'INCIDENT_RELATED', 'PRE_OPERATION'] as InspectionType[]).map(x => <option key={x} value={x}>{humanize(x)}</option>)}</select></label>
-        <label>Cuaca*<select value={weather} onChange={e => setWeather(e.target.value)}><option>Cerah</option><option>Berawan</option><option>Hujan ringan</option><option>Hujan lebat</option><option>Petir</option><option>Berkabut/debu tebal</option></select></label>
-        <label>Cari item<input placeholder="mis. TM-003 / berm / rem…" value={q} onChange={e => setQ(e.target.value)} /></label>
+        <label>{t('inspect_area', lang)}<select value={area} onChange={e => { setArea(e.target.value); setSub(''); }}>{AREAS.map(a => <option key={a.id} value={a.id}>{a.name[lang]}</option>)}</select></label>
+        <label>{t('inspect_subarea', lang)}<select value={sub} onChange={e => setSub(e.target.value)}><option value="">—</option>{areaSubs.map(s => <option key={s.id} value={s.id}>{s.name[lang]}</option>)}</select></label>
+        <label>{t('inspect_shift', lang)}<select value={shift} onChange={e => setShift(e.target.value as any)}>{['PAGI', 'SIANG', 'MALAM'].map(s => <option key={s} value={s}>{humanize(s)}</option>)}</select></label>
+        <label>{t('inspect_type', lang)}<select value={type} onChange={e => setType(e.target.value as InspectionType)}>{(['DAILY_PATROL', 'POST_RAIN', 'FOLLOW_UP', 'SPECIAL_INSPECTION', 'INCIDENT_RELATED', 'PRE_OPERATION'] as InspectionType[]).map(x => <option key={x} value={x}>{humanize(x)}</option>)}</select></label>
+        <label>{t('inspect_weather', lang)}<select value={weather} onChange={e => setWeather(e.target.value)}><option>Cerah</option><option>Berawan</option><option>Hujan ringan</option><option>Hujan lebat</option><option>Petir</option><option>Berkabut/debu tebal</option></select></label>
+        <label>{t('inspect_search', lang)}<input placeholder={t('inspect_search_ph', lang)} value={q} onChange={e => setQ(e.target.value)} /></label>
       </div>
 
       <div className="card">
-        <h3><Icon name="shield" /> Critical control gagal? <small className="muted">(otomatis Critical, override compliance)</small></h3>
+        <h3><Icon name="shield" /> {t('inspect_cc_title', lang)} <small className="muted">{t('inspect_cc_auto', lang)}</small></h3>
         <div className="chips">{CRITICAL_CONTROLS.map(c => <label key={c.id} className="chip"><input type="checkbox" checked={failedCC.includes(c.id)} onChange={e => setFailedCC(p => e.target.checked ? [...p, c.id] : p.filter(x => x !== c.id))} /> <b>{c.id}</b> {c.name['id-ID']}</label>)}</div>
-        <label className="chip dangerline" style={{ marginTop: 8 }}><input type="checkbox" checked={stopWork} onChange={e => setStopWork(e.target.checked)} /> Stop Work — {STOP_WORK_TRIGGERS.length} pemicu (radio terlebih dahulu)</label>
-        {(failedCC.length > 0 || stopWork) && <label style={{ marginTop: 8 }}>Immediate action*<textarea value={immediate} onChange={e => setImmediate(e.target.value)} placeholder="Tindakan langsung yang sudah dilakukan di lapangan…" rows={2} /></label>}
+        <label className="chip dangerline" style={{ marginTop: 8 }}><input type="checkbox" checked={stopWork} onChange={e => setStopWork(e.target.checked)} /> {t('inspect_stopwork', lang)} — {STOP_WORK_TRIGGERS.length} {t('inspect_triggers', lang)} ({t('inspect_radio_first', lang)})</label>
+        {(failedCC.length > 0 || stopWork) && <label style={{ marginTop: 8 }}>{t('inspect_immediate', lang)}<textarea value={immediate} onChange={e => setImmediate(e.target.value)} placeholder={t('inspect_immediate_ph', lang)} rows={2} /></label>}
       </div>
 
       <div className="card">
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <h3 style={{ margin: 0 }}>{humanize(module)} — {items.length} item</h3>
-          <select aria-label="Modul checklist" value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{humanize(m)}</option>)}</select>
+          <select aria-label={t('inspect_module_label', lang)} value={module} onChange={e => setModule(e.target.value)} style={{ maxWidth: 300 }}>{MODULES.map(m => <option key={m} value={m}>{humanize(m)}</option>)}</select>
         </div>
-        {items.length === 0 && <Empty title="Tidak ada item cocok" hint="Ubah kata kunci atau modul." />}
+        {items.length === 0 && <Empty title={t('inspect_empty', lang)} hint={t('inspect_empty_hint', lang)} />}
         {items.map(it => {
           const v = results[it.id] ?? { r: 'C' as ResultStatus, note: '', actual: '', unit: '', photos: [] };
           return (
@@ -157,14 +157,14 @@ export default function InspectionPage() {
               </div>
               {(it.unit_specific || v.r !== 'C') && (
                 <div className="formgrid">
-                  {it.unit_specific && <label>Unit alat<input placeholder="mis. HD-042 / EX-011" value={v.unit} onChange={e => set(it.id, { unit: e.target.value })} /></label>}
-                  {v.r !== 'C' && <label>Nilai aktual (actual)<input placeholder="mis. lebar 8,2 m / grade 14% / foto…" value={v.actual} onChange={e => set(it.id, { actual: e.target.value })} /></label>}
+                  {it.unit_specific && <label>{t('inspect_unit', lang)}<input placeholder={t('inspect_unit_ph', lang)} value={v.unit} onChange={e => set(it.id, { unit: e.target.value })} /></label>}
+                  {v.r !== 'C' && <label>{t('inspect_actual', lang)}<input placeholder={t('inspect_actual_ph', lang)} value={v.actual} onChange={e => set(it.id, { actual: e.target.value })} /></label>}
                 </div>
               )}
-              {v.r === 'NC' && <label>Catatan NC*<textarea value={v.note} onChange={e => set(it.id, { note: e.target.value })} placeholder="Deskripsi kondisi + lokasi patok + bahaya…" rows={2} /></label>}
+              {v.r === 'NC' && <label>{t('inspect_nc_note', lang)}<textarea value={v.note} onChange={e => set(it.id, { note: e.target.value })} placeholder={t('inspect_nc_note_ph', lang)} rows={2} /></label>}
               <div className="photoline">
-                <label className="btn ghost sm" style={{ margin: 0 }}><Icon name="camera" /> {v.photos.length ? `Tambah foto (${v.photos.length})` : 'Tambah foto'}<input type="file" accept="image/*" capture="environment" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onPhoto(it.id, f); e.target.value = ''; }} /></label>
-                <small className="muted">Kompresi otomatis 300–800KB · tersimpan + antre Drive</small>
+                <label className="btn ghost sm" style={{ margin: 0 }}><Icon name="camera" /> {v.photos.length ? `${t('inspect_add_photo', lang)} (${v.photos.length})` : t('inspect_add_photo', lang)}<input type="file" accept="image/*" capture="environment" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onPhoto(it.id, f); e.target.value = ''; }} /></label>
+                <small className="muted">{t('inspect_compress', lang)}</small>
                 {v.photos.length > 0 && <div className="thumbs">{v.photos.map((p, i) => <a key={i} href={p} target="_blank" rel="noreferrer"><img src={p} alt={`${it.id}-${i}`} /></a>)}</div>}
               </div>
             </div>
@@ -173,9 +173,9 @@ export default function InspectionPage() {
       </div>
 
       <div className="card">
-        <div className="row"><button className="primary" style={{ flex: 1 }} onClick={submit} disabled={busy}><Icon name="check" /> {busy ? 'Menyimpan…' : `Submit inspeksi (${doneCount} item)`}</button></div>
+        <div className="row"><button className="primary" style={{ flex: 1 }} onClick={submit} disabled={busy}><Icon name="check" /> {busy ? t('inspect_saving', lang) : `${t('inspect_submit', lang)} (${doneCount} item)`}</button></div>
         {msg && <p role="status" className={msg.startsWith('OK|') ? 'ok' : 'err'}>{msg.replace(/^OK\|/, '')}</p>}
-        <p className="muted">Validasi: NC wajib catatan · NC kritis wajib foto · Critical/Stop wajib immediate action. Submitted tak bisa diedit patrol — koreksi via amendment/supervisor.</p>
+        <p className="muted">{t('inspect_validation', lang)}</p>
       </div>
       <CriticalModal open={showCrit} onConfirm={submit} onCancel={() => setShowCrit(false)} />
     </Protected>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { can, type Action } from '../services/permissions';
@@ -17,7 +17,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <BrandMark />
           <span className="brandtxt"><strong>Safety Patrol</strong><small>Sifang Mining · v2.0</small></span>
         </Link>
-        <nav className="menu" aria-label="Navigasi utama">
+        <nav className="menu" aria-label={t('ui_nav_label', lang)}>
           <NavLink to="/" end><Icon name="home" /> {t('nav_home', lang)}</NavLink>
           <NavLink to="/inspect"><Icon name="clipboard" /> {t('nav_inspect', lang)}</NavLink>
           <NavLink to="/activity"><Icon name="calendar" /> {t('nav_activity', lang)}</NavLink>
@@ -28,7 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {user?.role === 'HSE_ADMIN' && <NavLink to="/admin"><Icon name="gear" /> {t('admin', lang)}</NavLink>}
         </nav>
         <div className="userbox">
-          <select value={lang} onChange={e => setLang(e.target.value as any)} aria-label="Bahasa">
+          <select value={lang} onChange={e => setLang(e.target.value as any)} aria-label={t('ui_lang_label', lang)}>
             <option value="id-ID">ID</option><option value="zh-CN">中文</option><option value="en-US">EN</option>
           </select>
           {user ? (
@@ -45,42 +45,94 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <img src="/brand/pa-logo-768.png" alt="Priastama Adiyoga — Product Design" loading="lazy" />
         </div>
         <p className="foot-brand">Product Design</p>
-        <small>HSE Safety Patrol v2.0 · Offline-first · Radio/verbal adalah jalur utama Stop Work · Aplikasi sebagai dokumentasi dan backup</small>
+        <small>{t('ui_foot', lang)}</small>
       </footer>
     </div>
   );
 }
 
 export function Protected({ children, roles, action }: { children: React.ReactNode; roles?: string[]; action?: Action }) {
-  const { user } = useApp();
-  if (!user) return <div className="card center"><span className="big-ic"><Icon name="lock" size={30} /></span><h3>Akses memerlukan login</h3><p>Silakan <Link to="/login">masuk dengan akun dinas</Link> untuk memakai aplikasi produksi ini.</p></div>;
-  if (roles && !roles.includes(user.role)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Akses ditolak</h3><p>Role <b>{humanize(user.role)}</b> tidak diizinkan untuk halaman ini.{action ? ` Izin yang dibutuhkan: ${humanize(action)}.` : ''}</p></div>;
-  if (action && !can(user.role, action)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>Izin tidak cukup</h3><p>Aksi <b>{humanize(action)}</b> memerlukan role lebih tinggi.</p></div>;
+  const { user, lang } = useApp();
+  if (!user) return <div className="card center"><span className="big-ic"><Icon name="lock" size={30} /></span><h3>{t('ui_need_login', lang)}</h3><p>{t('ui_login_prefix', lang)}<Link to="/login">{t('ui_login_link', lang)}</Link>{t('ui_login_suffix', lang)}</p></div>;
+  if (roles && !roles.includes(user.role)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>{t('ui_denied', lang)}</h3><p>{t('ui_role_a', lang)}<b>{humanize(user.role)}</b>{t('ui_role_b', lang)}{action ? t('ui_need_perm', lang, { action: humanize(action) }) : ''}</p></div>;
+  if (action && !can(user.role, action)) return <div className="card center"><span className="big-ic"><Icon name="shield" size={30} /></span><h3>{t('ui_insufficient', lang)}</h3><p>{t('ui_action_a', lang)}<b>{humanize(action)}</b>{t('ui_action_b', lang)}</p></div>;
   return <>{children}</>;
 }
 
-export function CriticalModal({ open, onConfirm, onCancel }: { open: boolean; onConfirm: () => void; onCancel: () => void }) {
+export interface DialogState {
+  mode: 'notice' | 'confirm' | 'prompt';
+  title: string;
+  message: string;
+  placeholder?: string;
+  defaultValue?: string;
+  danger?: boolean;
+  onSubmit?: (value: string) => void;
+}
+
+export function useDialogKeys(active: boolean, onEscape: () => void, boxRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
-    if (!open) return;
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    if (!active) return;
+    const box = boxRef.current!;
+    box.querySelector<HTMLElement>('button, input')?.focus();
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onEscape(); return; }
+      if (e.key !== 'Tab') return;
+      const items = Array.from(box.querySelectorAll<HTMLElement>('button, input')).filter(el => !el.hasAttribute('disabled'));
+      const firstEl = items[0], lastEl = items[items.length - 1];
+      const ae = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && ae === firstEl) { e.preventDefault(); lastEl.focus(); }
+      else if (!e.shiftKey && ae === lastEl) { e.preventDefault(); firstEl.focus(); }
+    };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-  }, [open, onCancel]);
+  }, [active, onEscape, boxRef]);
+}
+
+export function Dialog({ state, onClose }: { state: DialogState | null; onClose: () => void }) {
+  const { lang } = useApp();
+  const [val, setVal] = useState('');
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => { if (state) setVal(state.defaultValue ?? ''); }, [state]);
+  useDialogKeys(!!state, onClose, boxRef);
+  if (!state) return null;
+  const submit = () => {
+    onClose();
+    if (state.mode !== 'notice' && state.onSubmit) state.onSubmit(val);
+  };
+  return (
+    <div className="modalback" role="dialog" aria-modal="true" aria-label={state.title}>
+      <div className="modal" ref={boxRef}>
+        <h2>{state.title}</h2>
+        <p className="muted">{state.message}</p>
+        {state.mode === 'prompt' && <label><input aria-label={state.title} placeholder={state.placeholder ?? ''} value={val} onChange={e => setVal(e.target.value)} /></label>}
+        <div className="row end">
+          {state.mode !== 'notice' && <button className="ghost" onClick={onClose}>{t('dialog_cancel', lang)}</button>}
+          <button className={state.danger ? 'danger' : 'primary'} onClick={submit}>{state.mode === 'prompt' ? t('dialog_submit', lang) : t('dialog_ok', lang)}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CriticalModal({ open, onConfirm, onCancel }: { open: boolean; onConfirm: () => void; onCancel: () => void }) {
+  const { lang } = useApp();
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  useDialogKeys(open, onCancel, boxRef);
   if (!open) return null;
   return (
-    <div className="modalback" role="dialog" aria-modal="true" aria-label="Konfirmasi kondisi kritis">
-      <div className="modal modal-crit">
-        <p className="modal-kicker"><Icon name="radio" /> Stop Work — Kondisi Kritis</p>
-        <h2>Sudah menghubungi supervisor via radio?</h2>
-        <p className="warn">Aplikasi adalah jalur <b>sekunder</b> — radio/verbal langsung adalah jalur <b>utama</b> untuk keselamatan jiwa. Notifikasi digital tertunda saat perangkat offline.</p>
+    <div className="modalback" role="dialog" aria-modal="true" aria-label={t('ui_crit_kicker', lang)}>
+      <div className="modal modal-crit" ref={boxRef}>
+        <p className="modal-kicker"><Icon name="radio" /> {t('ui_crit_kicker', lang)}</p>
+        <h2>{t('ui_crit_title', lang)}</h2>
+        <p className="warn">{t('ui_crit_warn', lang)}</p>
         <ol className="steps">
-          <li>Hentikan aktivitas berbahaya dan amankan personel (radio terlebih dahulu).</li>
-          <li>Lengkapi immediate action, foto, GPS, dan deskripsi.</li>
-          <li>Submit — diteruskan ke Supervisor dan HSE Admin sebagai dokumentasi dan tindak lanjut.</li>
+          <li>{t('ui_crit_s1', lang)}</li>
+          <li>{t('ui_crit_s2', lang)}</li>
+          <li>{t('ui_crit_s3', lang)}</li>
         </ol>
         <div className="row end">
-          <button className="ghost" onClick={onCancel}>Batal — kembali amankan area</button>
-          <button className="danger" onClick={onConfirm}><Icon name="check" /> Sudah radio — lanjut submit</button>
+          <button className="ghost" onClick={onCancel}>{t('ui_crit_cancel', lang)}</button>
+          <button className="danger" onClick={onConfirm}><Icon name="check" /> {t('ui_crit_confirm', lang)}</button>
         </div>
       </div>
     </div>

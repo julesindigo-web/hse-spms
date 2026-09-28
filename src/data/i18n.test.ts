@@ -13,6 +13,10 @@ describe('t', () => {
   it('fallback id-ID bila bahasa hilang', () => {
     expect(t('login', 'xx' as Lang)).toBe(STRINGS.login['id-ID']);
   });
+  it('interpolasi {var} bila vars diberikan', () => {
+    expect(t('login', 'id-ID', { x: 1 })).toBe('Masuk');
+    expect(t('kunci-aneh', 'id-ID', { n: 3 })).toBe('kunci-aneh');
+  });
 });
 
 describe('humanize', () => {

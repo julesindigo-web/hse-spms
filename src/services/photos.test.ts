@@ -112,17 +112,27 @@ describe('queuePhoto & retryTicket', () => {
     await queuePhoto({ uidUser: 'u', inspection_id: 'i', filename: 'h.jpg', mime: 'image/jpeg', dataUrl: 'data:z' });
     expect((await list('tickets')).length).toBe(3);
   });
-  it('retry: belum konfigurasi / ok / non-ok / gagal', async () => {
+  it('retry: belum konfigurasi / tiket hilang / file hilang / kirim ulang penuh', async () => {
     await metaPut('drive_settings', { appsScriptUrl: '', driveFolder: 'F', updated_at: '', updated_by: '' });
     expect(await retryTicket('t')).toMatch('belum dikonfigurasi');
     await metaPut('drive_settings', { appsScriptUrl: 'https://x/exec', driveFolder: 'F', updated_at: '', updated_by: '' });
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true })));
-    expect(await retryTicket('t')).toMatch('terkirim');
+    expect(await retryTicket('tak-ada')).toMatch('tidak ditemukan');
+    const { put } = await import('./store');
+    await put('tickets', { id: 't1', ticket_id: 't1', filename: 'f.jpg', mime_type: 'image/jpeg', sha256: 'sha-x', status: 'QUEUED', expires_at: new Date(Date.now() + 3600000).toISOString(), attachment_id: 'a1' });
+    expect(await retryTicket('t1')).toMatch('File lokal tidak ditemukan');
+    await put('attachments', { id: 'a1', dataUrl: 'data:img' });
+    let sentBody = '';
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, o: RequestInit) => { sentBody = String(o.body); return { ok: true }; }));
+    expect(await retryTicket('t1')).toMatch('terkirim');
+    const sent = JSON.parse(sentBody);
+    expect(sent.ticket_id).toBe('t1');
+    expect(sent.sha256).toBe('sha-x');
+    expect(sent.file_base64).toBe('data:img');
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 })));
-    expect(await retryTicket('t')).toMatch('500');
+    expect(await retryTicket('t1')).toMatch('500');
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('net'); }));
-    expect(await retryTicket('t')).toMatch('Gagal retry');
+    expect(await retryTicket('t1')).toMatch('Gagal retry');
     vi.stubGlobal('fetch', vi.fn(async () => { throw 'putus'; }));
-    expect(await retryTicket('t')).toMatch('putus');
+    expect(await retryTicket('t1')).toMatch('putus');
   });
 });

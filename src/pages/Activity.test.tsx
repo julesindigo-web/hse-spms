@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Activity from './Activity';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { put, uid } from '../services/store';
 
@@ -55,6 +57,16 @@ async function seed() {
 }
 
 describe('Activity', () => {
+  it('EN: chrome aktivitas terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('HSE_ADMIN');
+    const r = renderWith('/activity', <><Probe /><Activity /></>);
+    expect(await r.findByText('Daily Activity Report')).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Patrol activity documentation')).not.toBeNull();
+    expect(await r.findByText('Inspection CSV')).not.toBeNull();
+  });
   it('laporan harian + filter + export CSV + cetak', async () => {
     await loginAs('HSE_ADMIN');
     await seed();

@@ -1,4 +1,4 @@
-import { put, uid, metaGet, metaPut } from './store';
+import { put, uid, metaGet, metaPut, list, get } from './store';
 import { APPS_SCRIPT_URL } from './firebase';
 
 export interface DriveSettings { appsScriptUrl: string; driveFolder: string; updated_at: string; updated_by: string; }
@@ -20,7 +20,7 @@ export async function testDriveConnection(): Promise<{ ok: boolean; msg: string 
     const to = setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(s.appsScriptUrl, { method: 'GET', signal: ctrl.signal });
     clearTimeout(to);
-    if (r.ok) return { ok: true, msg: 'Bridge Apps Script reachable (GET 200). Upload memakai POST + ID Token + tiket.' };
+    if (r.ok) return { ok: true, msg: 'Bridge Apps Script reachable (GET 200). Upload memakai POST + tiket sekali pakai.' };
     return { ok: false, msg: `Bridge merespons HTTP ${r.status}. Periksa deployment Web App (Execute as: Me, Access: Anyone).` };
   } catch (e: any) {
     return { ok: false, msg: `Tidak dapat menjangkau bridge (${e?.message ?? e}). Foto aman di antrean lokal, akan retry saat online.` };
@@ -52,9 +52,11 @@ export async function queuePhoto(opts: {
 }): Promise<string> {
   const id = uid('att');
   const size_kb = Math.round(opts.dataUrl.length / 1024);
+  const sha256 = pseudoSha(opts.dataUrl);
+  const expires_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   await put('attachments', {
     id, inspection_id: opts.inspection_id, checklist_id: opts.checklist_id,
-    filename: opts.filename, mime: opts.mime, sha256: pseudoSha(opts.dataUrl),
+    filename: opts.filename, mime: opts.mime, sha256,
     size_kb, drive_file_id: '', upload_status: 'QUEUED',
     dataUrl: opts.dataUrl, lat: opts.lat, lng: opts.lng, acc: opts.acc,
     taken_by: opts.uidUser, taken_at: new Date().toISOString()
@@ -62,15 +64,15 @@ export async function queuePhoto(opts: {
   const ticket_id = uid('tkt');
   await put('tickets', {
     id: ticket_id, ticket_id, uid: opts.uidUser, inspection_id: opts.inspection_id,
-    filename: opts.filename, mime_type: opts.mime, sha256: pseudoSha(opts.dataUrl),
-    status: 'QUEUED', expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(), attachment_id: id
+    filename: opts.filename, mime_type: opts.mime, sha256,
+    status: 'QUEUED', expires_at, attachment_id: id
   });
   try {
     const s = await getDriveSettings();
     if (s.appsScriptUrl) {
       await fetch(s.appsScriptUrl, {
         method: 'POST', headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ ticket_id, filename: opts.filename, mime_type: opts.mime, file_base64: opts.dataUrl, note: 'hse-spms-upload' })
+        body: JSON.stringify({ ticket_id, filename: opts.filename, mime_type: opts.mime, sha256, expires_at, file_base64: opts.dataUrl, note: 'hse-spms-upload' })
       });
     }
   } catch {}
@@ -80,8 +82,15 @@ export async function queuePhoto(opts: {
 export async function retryTicket(ticket_id: string): Promise<string> {
   const s = await getDriveSettings();
   if (!s.appsScriptUrl) return 'Bridge belum dikonfigurasi — foto tetap aman lokal.';
+  const t = (await list('tickets')).find((x: any) => x.ticket_id === ticket_id);
+  if (!t) return 'Tiket tidak ditemukan di antrean lokal.';
+  const a = await get('attachments', t.attachment_id);
+  if (!a?.dataUrl) return 'File lokal tidak ditemukan — foto ulang diperlukan.';
   try {
-    const r = await fetch(s.appsScriptUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ ticket_id, note: 'retry' }) });
+    const r = await fetch(s.appsScriptUrl, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ ticket_id, filename: t.filename, mime_type: t.mime_type, sha256: t.sha256, expires_at: t.expires_at, file_base64: a.dataUrl, note: 'retry' })
+    });
     return r.ok ? 'Retry terkirim ke bridge.' : `Bridge HTTP ${r.status}.`;
   } catch (e: any) { return `Gagal retry: ${e?.message ?? e}`; }
 }

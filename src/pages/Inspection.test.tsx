@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fireEvent } from '@testing-library/react';
+import { fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InspectionPage from './Inspection';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { list, put } from '../services/store';
 import { compressPhoto } from '../services/photos';
@@ -47,6 +49,16 @@ describe('Inspection', () => {
     await u.upload(input, new File(['x'], 'f.jpg', { type: 'image/jpeg' }));
   }
 
+  it('EN: chrome inspeksi terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('PATROL');
+    const r = renderWith('/inspect', <><Probe /><InspectionPage /></>);
+    expect(await r.findByText('Inspeksi Patrol Harian')).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Daily Patrol Inspection')).not.toBeNull();
+    expect(await r.findByText('Submit inspection (0 item)')).not.toBeNull();
+  });
   it('ganti modul/shift/tipe/cuaca/area + cari item + empty', async () => {
     const { u, r } = await open();
     await u.selectOptions(r.getByLabelText(/Modul checklist/), 'TRAFFIC_MANAGEMENT');

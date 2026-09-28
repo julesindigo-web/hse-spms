@@ -4,13 +4,13 @@ import { Protected } from '../components/ui';
 import { inspectionCompliance } from '../services/engines';
 import { findingRegister, inspectionSummary, download } from '../services/reporting';
 import { can } from '../services/permissions';
-import { humanize } from '../data/i18n';
+import { humanize, t } from '../data/i18n';
 import { useApp } from '../contexts/AppContext';
 import { Icon } from '../components/icons';
 import { AREAS } from '../data/master';
 
 export default function Activity() {
-  const { user } = useApp();
+  const { user, lang } = useApp();
   const [ins, setIns] = useState<any[]>([]);
   const [fnd, setFnd] = useState<any[]>([]);
   const [att, setAtt] = useState<any[]>([]);
@@ -35,38 +35,38 @@ export default function Activity() {
   return (
     <Protected>
       <div className="pagehead">
-        <div><p className="kicker">Dokumentasi aktivitas patrol</p><h2><Icon name="calendar" /> Daily Activity Report</h2><p className="muted">Aktivitas patrol harian — ringkasan shift, compliance, temuan, critical control, evidence.</p></div>
+        <div><p className="kicker">{t('activity_kicker', lang)}</p><h2><Icon name="calendar" /> {t('activity_title', lang)}</h2><p className="muted">{t('activity_sub', lang)}</p></div>
         <div className="row">
-          <button className="ghost" onClick={() => window.print()}><Icon name="printer" /> Cetak / PDF</button>
-          {user && can(user.role, 'report.export') && <button onClick={() => download(`daily-${date}-${shift}.csv`, inspectionSummary(rows))}><Icon name="download" /> Inspeksi CSV</button>}
-          {user && can(user.role, 'report.export') && <button onClick={() => download(`temuan-${date}.csv`, findingRegister(fRows))}><Icon name="download" /> Temuan CSV</button>}
+          <button className="ghost" onClick={() => window.print()}><Icon name="printer" /> {t('activity_print', lang)}</button>
+          {user && can(user.role, 'report.export') && <button onClick={() => download(`daily-${date}-${shift}.csv`, inspectionSummary(rows))}><Icon name="download" /> {t('activity_csv_insp', lang)}</button>}
+          {user && can(user.role, 'report.export') && <button onClick={() => download(`temuan-${date}.csv`, findingRegister(fRows))}><Icon name="download" /> {t('activity_csv_fnd', lang)}</button>}
         </div>
       </div>
       <div className="card filterbar">
-        <label>Tanggal<input type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
-        <label>Shift<select value={shift} onChange={e => setShift(e.target.value)}>{['SEMUA', 'PAGI', 'SIANG', 'MALAM'].map(s => <option key={s} value={s}>{humanize(s)}</option>)}</select></label>
-        <label>Area<select value={area} onChange={e => setArea(e.target.value)}><option value="SEMUA">{humanize('SEMUA')}</option>{AREAS.map(a => <option key={a.id} value={a.id}>{a.name['id-ID']}</option>)}</select></label>
-        <div className="statline"><span className="pill">{rows.length} inspeksi</span><span className="pill">Compliance {avg}%</span><span className={`pill ${crit ? 'bad' : 'ok'}`}>{crit} Critical</span><span className="pill">{fRows.length} temuan</span></div>
+        <label>{t('activity_date', lang)}<input type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
+        <label>{t('activity_shift', lang)}<select value={shift} onChange={e => setShift(e.target.value)}>{['SEMUA', 'PAGI', 'SIANG', 'MALAM'].map(s => <option key={s} value={s}>{humanize(s)}</option>)}</select></label>
+        <label>{t('activity_area', lang)}<select value={area} onChange={e => setArea(e.target.value)}><option value="SEMUA">{humanize('SEMUA')}</option>{AREAS.map(a => <option key={a.id} value={a.id}>{a.name[lang]}</option>)}</select></label>
+        <div className="statline"><span className="pill">{t('activity_inspections', lang, { n: rows.length })}</span><span className="pill">{t('activity_compliance', lang, { avg })}</span><span className={`pill ${crit ? 'bad' : 'ok'}`}>{t('activity_critical', lang, { n: crit })}</span><span className="pill">{t('activity_findings', lang, { n: fRows.length })}</span></div>
       </div>
-      {rows.length === 0 && <div className="empty"><b>Belum ada aktivitas {date}.</b><p>Mulai dari menu Inspeksi. Laporan kosong tetap valid sebagai bukti shift dilakukan.</p></div>}
+      {rows.length === 0 && <div className="empty"><b>{t('activity_empty', lang, { date })}</b><p>{t('activity_empty_hint', lang)}</p></div>}
       {rows.map(i => {
         const fotos = att.filter(a => a.inspection_id === i.id);
         const temuan = fnd.filter(f => f.inspection_id === i.id);
         return (
           <div key={i.id} className="card report">
             <div className="rhead">
-              <div><strong>{humanize(i.area_id)}</strong> · {humanize(i.shift)} · {i.date}<br /><small className="muted">{i.id} · oleh {i.inspector_name} · {humanize(i.type)} · compliance {inspectionCompliance(i)}%</small></div>
+              <div><strong>{humanize(i.area_id)}</strong> · {humanize(i.shift)} · {i.date}<br /><small className="muted">{i.id} · {t('activity_by', lang, { name: i.inspector_name })} · {humanize(i.type)} · {t('activity_compact_comp', lang, { n: inspectionCompliance(i) })}</small></div>
               <span className={`badge ${i.overall_status}`}>{humanize(i.overall_status)}</span>
             </div>
             <div className="rmeta">
               <span><Icon name="pin" size={14} /> {i.gps ? `${Number(i.gps.lat).toFixed(5)}, ${Number(i.gps.lng).toFixed(5)} (±${i.gps.accuracy_m}m)` : '-'}</span>
               <span>{i.weather}</span>
-              <span>{i.responses?.length ?? 0} item</span>
-              <span><Icon name="camera" size={14} /> {fotos.length} foto</span>
-              {i.stop_work_triggered && <span className="pill bad">Stop Work</span>}
-              {(i.critical_control_failure ?? []).length > 0 && <span className="pill bad">CC gagal: {i.critical_control_failure.join(', ')}</span>}
+              <span>{t('activity_items', lang, { n: i.responses?.length ?? 0 })}</span>
+              <span><Icon name="camera" size={14} /> {t('activity_photos', lang, { n: fotos.length })}</span>
+              {i.stop_work_triggered && <span className="pill bad">{t('inspect_stopwork', lang)}</span>}
+              {(i.critical_control_failure ?? []).length > 0 && <span className="pill bad">{t('activity_cc_fail', lang, { ids: i.critical_control_failure.join(', ') })}</span>}
             </div>
-            {temuan.length > 0 && <div className="rtable"><table><thead><tr><th>Temuan</th><th>Risiko</th><th>Status</th><th>PIC</th></tr></thead><tbody>
+            {temuan.length > 0 && <div className="rtable"><table><thead><tr><th>{t('activity_th_finding', lang)}</th><th>{t('activity_th_risk', lang)}</th><th>{t('activity_th_status', lang)}</th><th>{t('activity_th_pic', lang)}</th></tr></thead><tbody>
               {temuan.map((f: any) => <tr key={f.id}><td>{f.title}</td><td><span className={`badge ${f.risk_level}`}>{humanize(f.risk_level)}</span></td><td>{humanize(f.state)}</td><td>{f.pic_name ?? '-'}</td></tr>)}
             </tbody></table></div>}
             {fotos.length > 0 && <div className="thumbs">{fotos.slice(0, 8).map((p: any) => <a key={p.id} href={p.dataUrl} target="_blank" rel="noreferrer"><img src={p.dataUrl} alt={p.filename} loading="lazy" /></a>)}</div>}

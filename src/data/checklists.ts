@@ -265,7 +265,7 @@ const TM: Row[] = [
   ['TM-051', 'TRAFFIC_MANAGEMENT', 'Tidak ada anak/hewan ternak di haul road', 'No children/livestock on road', STD_SOP],
   ['TM-052', 'TRAFFIC_MANAGEMENT', 'Kecepatan malam diturunkan & lampu jauh benar', 'Reduced night speed, correct lights', STD_SOP],
   ['TM-053', 'TRAFFIC_MANAGEMENT', 'Emergency bay/runaway ramp bebas halangan', 'Emergency bays clear', STD_SOP],
-  ['TM-054', 'TRAFFIC_MANAGEMENT', 'Kontak darurat & KM حادثه terpampang di unit', 'Emergency contacts in units', STD_SOP],
+  ['TM-054', 'TRAFFIC_MANAGEMENT', 'Kontak darurat & KM insiden terpampang di unit', 'Emergency contacts in units', STD_SOP],
   ['TM-055', 'TRAFFIC_MANAGEMENT', 'Berita acara pelanggaran dicatat & dibina', 'Violations logged & coached', STD_SOP]
 ];
 

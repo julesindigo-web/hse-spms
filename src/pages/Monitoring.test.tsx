@@ -1,11 +1,24 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { act } from '@testing-library/react';
 import Monitoring from './Monitoring';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { put, uid } from '../services/store';
 
 beforeEach(async () => { await clearAll(); });
 
 describe('Monitoring', () => {
+  it('EN: chrome monitoring terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('SUPERVISOR');
+    const r = renderWith('/monitoring', <><Probe /><Monitoring /></>);
+    expect(await r.findByText('Monitoring Safety Patrol')).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Live safety monitoring')).not.toBeNull();
+    expect(await r.findByText('No overdue or open Critical. Keep it up.')).not.toBeNull();
+  });
   it('kosong → KPI nol + ajakan patrol', async () => {
     await loginAs('SUPERVISOR');
     const r = renderWith('/monitoring', <Monitoring />);

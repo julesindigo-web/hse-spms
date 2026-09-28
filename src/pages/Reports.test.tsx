@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Reports from './Reports';
+import { useApp } from '../contexts/AppContext';
+import type { Lang } from '../types';
 import { clearAll, loginAs, renderWith } from '../test/render';
 import { put, uid } from '../services/store';
 
@@ -9,6 +11,16 @@ beforeEach(async () => { await clearAll(); });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe('Reports', () => {
+  it('EN: chrome laporan terjemahan', async () => {
+    let setLang: (l: Lang) => void = () => {};
+    function Probe() { const c = useApp(); setLang = c.setLang; return null; }
+    await loginAs('HSE_ADMIN');
+    const r = renderWith('/reports', <><Probe /><Reports /></>);
+    expect(await r.findByText(/Laporan/)).not.toBeNull();
+    await act(async () => { setLang('en-US'); });
+    expect(await r.findByText('Reports + Audit')).not.toBeNull();
+    expect(await r.findByText('Finding Register CSV')).not.toBeNull();
+  });
   it('export CSV + cetak + audit tampil', async () => {
     await loginAs('HSE_ADMIN');
     await put('findings', { id: uid('f'), area_id: 'A', title: 'T', risk_level: 'HIGH', risk_score: 1, state: 'OPEN' });

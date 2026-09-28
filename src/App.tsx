@@ -15,7 +15,7 @@ import Monitoring from './pages/Monitoring';
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Layout>
           <Routes>
             <Route path="/login" element={<Login />} />
